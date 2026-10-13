@@ -154,7 +154,9 @@ jobs:
       - name: Install Playwright browsers
         if: vars.EHR_URL != '' && vars.PORTAL_URL != ''
         working-directory: ${{ steps.suite.outputs.dir }}
-        run: npx playwright install --with-deps chromium
+        # No --with-deps: jobs have no sudo. setup-runner.sh installs the system
+        # libraries on the runner host once.
+        run: npx playwright install chromium
 
       # DEPLOY_UNIT / DEPLOY_VERSION let the suite check that the build it
       # just shipped is the one serving (the checkout is the deployed ref).
