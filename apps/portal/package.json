@@ -1,0 +1,27 @@
+{
+  "name": "@careconnect/portal",
+  "version": "1.0.10",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 4001",
+    "build": "npx tsc && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@careconnect/api-client": "*",
+    "@careconnect/types": "*",
+    "@careconnect/design-system": "*",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-router-dom": "^6.30.6"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.3"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "name": "careconnect",
+  "private": true,
+  "description": "CareConnect — healthcare EMR demo (API, EHR, Portal) and its design system, released as independent units",
+  "packageManager": "npm@10.9.3",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "postinstall": "node scripts/install-playwright-browsers.mjs",
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test --filter=!@careconnect/playwright-e2e",
+    "api:dev": "npm run dev --workspace=@careconnect/api",
+    "ehr:dev": "npm run dev --workspace=@careconnect/ehr",
+    "portal:dev": "npm run dev --workspace=@careconnect/portal",
+    "ds:dev": "npm run dev --workspace=@careconnect/design-system",
+    "ds:build": "npm run build --workspace=@careconnect/design-system",
+    "storybook": "npm run storybook --workspace=@careconnect/design-system",
+    "build-storybook": "npm run build-storybook --workspace=@careconnect/design-system",
+    "test:stories": "npm run test:stories --workspace=@careconnect/design-system",
+    "test:visual": "npm run test:visual --workspace=@careconnect/design-system",
+    "e2e:test": "npm run test --workspace=@careconnect/playwright-e2e",
+    "smoke:test": "npm run test:smoke --workspace=@careconnect/playwright-e2e",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release:notes": "changeset status --verbose",
+    "release:tag": "changeset publish",
+    "release:github": "node scripts/github-releases.mjs",
+    "release:publish": "bash scripts/release-publish.sh"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^3.0.1",
+    "turbo": "^2.10.11",
+    "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "storybook": "^10.6.2"
+  }
+}

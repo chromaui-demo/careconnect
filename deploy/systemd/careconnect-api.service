@@ -1,0 +1,36 @@
+[Unit]
+Description=CareConnect API Server
+Documentation=https://github.com/chromaui-demo/careconnect
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=careconnect
+Group=careconnect
+WorkingDirectory=/opt/careconnect
+EnvironmentFile=/etc/careconnect/careconnect-api.env
+
+# Ensure data directory exists before start (survives fresh installs)
+ExecStartPre=/bin/mkdir -p /var/lib/careconnect
+ExecStartPre=/bin/chown careconnect:careconnect /var/lib/careconnect
+
+ExecStart=/usr/bin/node apps/api/dist/index.js
+
+Restart=always
+RestartSec=5
+TimeoutStartSec=120
+
+# Hardening (compatible with default Ubuntu systemd)
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/careconnect
+PrivateTmp=true
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=careconnect-api
+
+[Install]
+WantedBy=multi-user.target

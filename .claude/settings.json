@@ -1,0 +1,18 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  },
+  "extraKnownMarketplaces": {
+    "chromatic": {
+      "source": {
+        "source": "github",
+        "repo": "chromaui/chromatic-plugins"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "chromatic@chromatic": true
+  }
+}

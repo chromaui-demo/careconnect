@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+storybook-static/
+.turbo/
+artifacts/
+MANIFEST.json
+
+# Test output
+coverage/
+test-results/
+playwright-report/
+# Playwright signed-in sessions (apps/playwright-e2e/tests/auth.setup.ts)
+.auth/
+# Vitest browser mode: Chromatic's DOM archives, failure screenshots
+.vitest/
+.vitest-attachments/
+
+# Packed tarballs
+*.tgz
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Local env overrides
+.env
+.env.local
+
+# Deploy secrets — per-environment config, kept out of the repo
+# (only the example template is committed)
+deploy/*.env
+!deploy/careconnect.env.example
+deploy/runtime/
+
+# Local agent notes
+CLAUDE.md
+
+# Runtime data (SQLite, uploads)
+data/

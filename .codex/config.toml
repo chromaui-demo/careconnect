@@ -1,0 +1,18 @@
+# Project-scoped Codex config: loaded only once this repository is trusted in Codex.
+# Mirrors .mcp.json (Claude Code). Keep the two in step; see docs/STORYBOOK-MCP.md.
+
+# Design-system docs published by Chromatic from main. Sign in once per person:
+#   codex mcp login careconnect-storybook
+[mcp_servers.careconnect-storybook]
+url = "https://main--6acbb93e85153a14d4e5b1cc.chromatic.com/mcp"
+# Read-only. Without this, Codex asks Chromatic for every scope it offers,
+# including build and project write access.
+scopes = ["storybook:read", "project:read"]
+
+[mcp_servers.careconnect-storybook.oauth]
+# Chromatic's public OAuth client ID for MCP clients, not a secret.
+client_id = "cdf3737dff9d485485968e50b63fd8b4"
+
+# Docs, story preview and test tools; available while `npm run storybook` runs.
+[mcp_servers.careconnect-storybook-local]
+url = "http://localhost:6006/mcp"

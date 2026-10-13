@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  # Required checks must also report on merge-queue refs, or the queue stalls
+  # waiting for a status that never arrives. Harmless when no queue is enabled.
+  merge_group:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # Not on merge-queue refs: cancelling a queued check ejects the PR from the
+  # queue. Pushes to main are cheap to let finish and back the release train.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# One job per release unit so each team gets its own required status check
+# ("CI / api", "CI / ehr", "CI / portal", "CI / portal-mobile",
+# "CI / design-system", "CI / design-system-native"). On pull
+# requests, `turbo --affected` limits each job to work that the PR actually
+# touches (directly, or through a shared package such as types or the design
+# system); unaffected jobs finish in seconds and still report green, so the
+# checks can be required unconditionally. A PR that changes only documentation
+# skips even the install (scripts/docs-only-change.sh). Pushes to main run
+# everything.
+jobs:
+  verify:
+    name: ${{ matrix.unit }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        # portal-mobile's `build` is a JS-only `expo export` for iOS and Android
+        # (proves both bundles resolve); native builds run in chromatic-native.yml.
+        unit: [api, ehr, portal, portal-mobile, design-system, design-system-native]
+    env:
+      # Base for `--affected` on PRs; ignored on pushes to main.
+      TURBO_SCM_BASE: origin/${{ github.base_ref || 'main' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # --affected diffs against the base branch, so it needs history.
+          fetch-depth: 0
+
+      # Markdown and docs/ only: nothing below can be affected, so the job
+      # reports green without installing anything.
+      - name: Documentation-only change?
+        id: docs
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: scripts/docs-only-change.sh
+
+      - uses: actions/setup-node@v7
+        if: steps.docs.outputs.docs_only != 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # Every workspace is private and linked locally, so no registry auth is
+      # needed — shared packages are built from source as task dependencies.
+      - name: Install dependencies
+        if: steps.docs.outputs.docs_only != 'true'
+        run: npm ci
+
+      # Stories and the *.visual.test.tsx flows run as real browser tests (play
+      # functions, assertions, a11y checks) — what Chromatic's pixel diff
+      # doesn't cover. Only the design system defines `test:stories` and
+      # `test:visual`; for the other units turbo resolves them to no-ops, so the
+      # browser is installed only where it is used.
+      - name: Install Playwright browser
+        if: matrix.unit == 'design-system' && steps.docs.outputs.docs_only != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Typecheck, test, build (${{ matrix.unit }})
+        if: steps.docs.outputs.docs_only != 'true'
+        run: >
+          npx turbo run typecheck test test:stories test:visual build
+          --filter=@careconnect/${{ matrix.unit }}
+          ${{ github.event_name == 'pull_request' && '--affected' || '' }}
+
+      - name: Upload test results
+        if: always() && matrix.unit == 'design-system' && steps.docs.outputs.docs_only != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: junit-design-system
+          # junit.xml from the unit suite, junit-stories.xml / junit-visual.xml
+          # from the browser suites.
+          path: packages/design-system/test-results/*.xml
+          if-no-files-found: ignore
+
+  # Single aggregate check for branch protection, so the rule doesn't need
+  # updating when units are added or renamed.
+  ci-ok:
+    name: All units passed
+    runs-on: ubuntu-latest
+    needs: verify
+    if: always()
+    steps:
+      - name: Check unit results
+        run: |
+          if [ "${{ needs.verify.result }}" != "success" ]; then
+            echo "One or more unit jobs failed: ${{ needs.verify.result }}"
+            exit 1
+          fi
+          echo "All units passed."

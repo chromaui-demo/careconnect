@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "CareConnect",
+    "slug": "careconnect-portal",
+    "scheme": "careconnect",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F8FAFB"
+    },
+    "ios": {
+      "bundleIdentifier": "com.careconnect.portal",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "com.careconnect.portal",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4F4",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": ["expo-router", "expo-secure-store"],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}

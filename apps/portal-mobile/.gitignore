@@ -1,0 +1,27 @@
+# Expo
+.expo/
+dist/
+
+# Generated native projects (Continuous Native Generation: `expo prebuild`
+# recreates them; Chromatic's react-native-build does so on every run)
+/ios
+/android
+
+# Chromatic React Native builds
+build/
+storybook-static/
+.chromatic/
+
+# Metro
+.metro-health-check*
+
+# Native signing material
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+.env*.local
+*.tsbuildinfo

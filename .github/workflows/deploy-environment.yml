@@ -1,0 +1,242 @@
+name: Deploy to environment
+
+# Reusable: build one release unit for one environment, deploy it over SSH,
+# run the Playwright end-to-end tests (apps/playwright-e2e) against it, and roll
+# back on failure. Called by deploy.yml — not meant to be run directly.
+#
+# On staging the whole suite runs and is the gate to production: this job
+# failing is what stops deploy.yml from promoting the release. Its browser
+# snapshots are uploaded to Chromatic for visual review. On production only
+# the @smoke tests run — they are read-only, and production is already past
+# the gate.
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: GitHub Environment name (staging | production)
+        type: string
+        required: true
+      unit:
+        description: Release unit (api | ehr | portal)
+        type: string
+        required: true
+      ref:
+        description: Tag or commit to build and deploy
+        type: string
+        required: true
+      suite:
+        description: 'End-to-end tests to run after deploying: full (the staging gate) or smoke'
+        type: string
+        required: true
+
+jobs:
+  deploy:
+    name: ${{ inputs.environment }}
+    # The VMs sit on a private LAN behind a Cloudflare tunnel, unreachable
+    # from GitHub-hosted runners, so deploys run on a self-hosted runner on
+    # that LAN (deploy/setup-runner.sh). This workflow is only ever started
+    # by workflow_dispatch — never by pull_request — so forks cannot reach it.
+    runs-on: [self-hosted, careconnect-lan]
+    # Protection rules on the environment (branch/tag restrictions, and any
+    # reviewers or wait timer) still apply. The production approval itself is
+    # the staging end-to-end gate in deploy.yml, so production needs no
+    # required reviewers (docs/RELEASE.md § Environments).
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ inputs.unit == 'portal' && vars.PORTAL_URL || vars.EHR_URL }}
+    permissions:
+      contents: read
+    env:
+      DEPLOY_CONFIG_FILE: ${{ github.workspace }}/../careconnect-${{ inputs.environment }}.env
+      SSH_KEY: ${{ github.workspace }}/../deploy_key
+    steps:
+      - name: Check environment configuration
+        env:
+          HAS_CONFIG: ${{ secrets.DEPLOY_CONFIG != '' }}
+          HAS_KEY: ${{ secrets.DEPLOY_SSH_KEY != '' }}
+        run: |
+          if [ "$HAS_CONFIG" != "true" ] || [ "$HAS_KEY" != "true" ]; then
+            echo "::error::Environment '${{ inputs.environment }}' is missing the DEPLOY_CONFIG and/or DEPLOY_SSH_KEY secret — see docs/RELEASE.md § One-time setup."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The config file is kept outside the workspace so it can never end up
+      # inside an artifact. It carries DEPLOY_MODE (baked into frontend
+      # bundles) and the SSH target (VM_USER / VM_HOST / VM_PORT).
+      - name: Write environment config and SSH key
+        env:
+          DEPLOY_CONFIG: ${{ secrets.DEPLOY_CONFIG }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ vars.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          printf '%s\n' "$DEPLOY_CONFIG" > "$DEPLOY_CONFIG_FILE"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$SSH_KEY"
+          chmod 600 "$SSH_KEY"
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          # shellcheck disable=SC1090
+          source "$DEPLOY_CONFIG_FILE"
+          if [ -n "$DEPLOY_KNOWN_HOSTS" ]; then
+            printf '%s\n' "$DEPLOY_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+          else
+            echo "::warning::DEPLOY_KNOWN_HOSTS is not set for '${{ inputs.environment }}' — trusting the host key on first use (ssh-keyscan)."
+            ssh-keyscan -p "${VM_PORT:-22}" "$VM_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          fi
+
+      - name: Build and package ${{ inputs.unit }}
+        id: package
+        env:
+          SKIP_INSTALL: 'true'
+        run: |
+          artifact=$(bash deploy/package-artifact.sh --unit "${{ inputs.unit }}" --config "$DEPLOY_CONFIG_FILE" --out artifacts | tail -n 1)
+          echo "artifact=${artifact}" >> "$GITHUB_OUTPUT"
+          echo "Built ${artifact}"
+
+      # Stable name per unit + environment so deploy/fetch-ci-artifact.sh can
+      # find "the latest production build of the portal" without knowing run ids.
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: careconnect-${{ inputs.unit }}-${{ inputs.environment }}
+          path: ${{ steps.package.outputs.artifact }}
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Deploy ${{ inputs.unit }} to ${{ inputs.environment }}
+        id: deploy
+        run: bash deploy/remote-deploy.sh --config "$DEPLOY_CONFIG_FILE" "${{ steps.package.outputs.artifact }}"
+
+      # A gate that can't run must not pass: without the URLs, staging fails
+      # here instead of promoting an untested release. Production keeps
+      # skipping its smoke run when they are unset.
+      - name: Check end-to-end test configuration
+        if: inputs.suite == 'full' && (vars.EHR_URL == '' || vars.PORTAL_URL == '')
+        run: |
+          echo "::error::Environment '${{ inputs.environment }}' needs the EHR_URL and PORTAL_URL variables for the end-to-end gate — see docs/RELEASE.md § One-time setup."
+          exit 1
+
+      # The suite normally runs from the deployed ref, so the tests match the
+      # build. A ref cut before apps/playwright-e2e existed (an older tag being
+      # redeployed) has no suite, so run the one from the commit this workflow
+      # was dispatched from instead, in a separate worktree with its own
+      # install. The deployed checkout is left untouched.
+      - name: Locate end-to-end suite
+        id: suite
+        if: vars.EHR_URL != '' && vars.PORTAL_URL != ''
+        env:
+          REF: ${{ inputs.ref }}
+          SUITE_SHA: ${{ github.sha }}
+        run: |
+          if [ -f apps/playwright-e2e/package.json ]; then
+            echo "dir=${GITHUB_WORKSPACE}/apps/playwright-e2e" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "::notice::${REF} predates apps/playwright-e2e — running the end-to-end suite from ${SUITE_SHA} instead."
+          suite_root="${RUNNER_TEMP}/e2e-suite"
+          git worktree remove --force "$suite_root" 2>/dev/null || true
+          git worktree add --detach "$suite_root" "$SUITE_SHA"
+          (cd "$suite_root" && npm ci --workspace=@careconnect/playwright-e2e)
+          echo "dir=${suite_root}/apps/playwright-e2e" >> "$GITHUB_OUTPUT"
+
+      - name: Install Playwright browsers
+        if: vars.EHR_URL != '' && vars.PORTAL_URL != ''
+        working-directory: ${{ steps.suite.outputs.dir }}
+        run: npx playwright install --with-deps chromium
+
+      # DEPLOY_UNIT / DEPLOY_VERSION let the suite check that the build it
+      # just shipped is the one serving (the checkout is the deployed ref).
+      - name: End-to-end tests (${{ inputs.suite }})
+        id: e2e
+        if: vars.EHR_URL != '' && vars.PORTAL_URL != ''
+        working-directory: ${{ steps.suite.outputs.dir }}
+        env:
+          EHR_URL: ${{ vars.EHR_URL }}
+          PORTAL_URL: ${{ vars.PORTAL_URL }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          DEPLOY_UNIT: ${{ inputs.unit }}
+          CHROMATIC_SNAPSHOTS: ${{ inputs.suite == 'full' && 'on' || 'off' }}
+        run: |
+          export DEPLOY_VERSION="$(node -p "require('${GITHUB_WORKSPACE}/apps/${DEPLOY_UNIT}/package.json').version")"
+          if [ "${{ inputs.suite }}" = "full" ]; then npm test; else npm run test:smoke; fi
+
+      - name: Upload end-to-end test report
+        if: always() && steps.e2e.outcome != 'skipped'
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-report-${{ inputs.unit }}-${{ inputs.environment }}
+          path: |
+            ${{ steps.suite.outputs.dir }}/playwright-report
+            ${{ steps.suite.outputs.dir }}/test-results
+          if-no-files-found: ignore
+
+      # Visual review of the staging run, in its own Chromatic project. Runs
+      # whether the tests passed or failed: a failed test's snapshot shows what
+      # the page looked like. Visual changes do not block production — a
+      # release's UI changes were reviewed on its PRs — so builds auto-accept
+      # and each deploy is compared with the previous one. continue-on-error:
+      # a Chromatic outage must not hold or roll back a release.
+      #
+      # The CLI rather than chromaui/action: this run is a workflow_dispatch
+      # from main that checks out a tag, and the action would report the build
+      # against main's head (GITHUB_SHA). CHROMATIC_SHA/BRANCH pin it to the
+      # commit actually deployed, on a "staging" branch in Chromatic.
+      - name: Publish end-to-end snapshots to Chromatic
+        if: always() && inputs.suite == 'full' && steps.e2e.outcome != 'skipped'
+        continue-on-error: true
+        working-directory: ${{ steps.suite.outputs.dir }}
+        env:
+          CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PLAYWRIGHT_PROJECT_TOKEN }}
+          CHROMATIC_BRANCH: ${{ inputs.environment }}
+        run: |
+          if [ -z "$CHROMATIC_PROJECT_TOKEN" ]; then
+            echo "::notice::CHROMATIC_PLAYWRIGHT_PROJECT_TOKEN is not set — skipping the Chromatic upload."
+            exit 0
+          fi
+          export CHROMATIC_SHA="$(git -C "$GITHUB_WORKSPACE" rev-parse HEAD)"
+          npm run chromatic -- --exit-zero-on-changes --auto-accept-changes
+
+      # Only roll back what this run deployed: a test failure after a
+      # successful deploy. A failed deploy already left the VM on the previous
+      # release (api) or never switched the symlink (frontends).
+      - name: Roll back ${{ inputs.unit }} on ${{ inputs.environment }}
+        if: failure() && steps.deploy.outcome == 'success'
+        run: |
+          echo "::error::End-to-end tests failed after deploying ${{ inputs.unit }} — rolling back."
+          bash deploy/remote-rollback.sh --config "$DEPLOY_CONFIG_FILE" "${{ inputs.unit }}"
+
+      - name: Explain the stopped release
+        if: failure() && inputs.suite == 'full'
+        env:
+          REF: ${{ inputs.ref }}
+        run: |
+          {
+            echo "## ${{ inputs.unit }} @ \`${REF}\` was not promoted to production"
+            echo
+            echo "The staging run failed (build, deploy or the end-to-end gate), so production was not touched."
+            if [ "${{ steps.deploy.outcome }}" = "success" ]; then
+              echo "Staging has been rolled back to the previous ${{ inputs.unit }} release."
+            fi
+            echo
+            echo "**Action required:**"
+            echo "1. Open the \`e2e-report-${{ inputs.unit }}-${{ inputs.environment }}\` artifact below (Playwright report, traces, screenshots); the Chromatic build for this commit shows each test's last page."
+            echo "2. Fix the regression and release again, or — if the failure was environmental — re-run this workflow. Production only deploys after a green staging run."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove config, key and suite worktree
+        if: always()
+        run: |
+          rm -f "$DEPLOY_CONFIG_FILE" "$SSH_KEY"
+          git worktree remove --force "${RUNNER_TEMP}/e2e-suite" 2>/dev/null || true

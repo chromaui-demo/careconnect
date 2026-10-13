@@ -1,0 +1,78 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    "tsconfig.base.json",
+    "scripts/vite-chart-manual-chunks.ts",
+    ".nvmrc"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    },
+    "dev": {
+      "dependsOn": [
+        "^build"
+      ],
+      "cache": false,
+      "persistent": true
+    },
+    "typecheck": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "test": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "@careconnect/design-system#test": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "test-results/**",
+        "coverage/**"
+      ]
+    },
+    "@careconnect/design-system-native#test": {
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "../design-system/src/styles/tokens.css"
+      ]
+    },
+    "test:stories": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "test-results/**"
+      ]
+    },
+    "test:visual": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "test-results/**",
+        ".vitest/**"
+      ]
+    },
+    "build-storybook": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "storybook-static/**"
+      ]
+    }
+  }
+}

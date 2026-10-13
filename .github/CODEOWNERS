@@ -1,0 +1,44 @@
+# Code ownership — one owner per release unit.
+#
+# Each release unit (see scripts/release-units.mjs) is owned by its team and
+# reviewed by that team. Shared packages are owned by the team that defines the
+# contract they carry. Later patterns win, so the specific lines below override
+# the catch-all at the top.
+#
+# All areas are currently owned by one person. When the GitHub teams exist,
+# replace the handle on each line with the team, e.g.
+#   apps/api/    @mkowalew-chromatic/backend
+# and keep the rest of the file unchanged.
+
+# Catch-all: repo-wide tooling, root config, docs
+*                                   @mkowalew-chromatic
+
+# --- Backend team: API service and the API contract it publishes -----------
+apps/api/                           @mkowalew-chromatic
+packages/types/                     @mkowalew-chromatic
+packages/api-client/                @mkowalew-chromatic
+packages/mock-data/                 @mkowalew-chromatic
+deploy/systemd/                     @mkowalew-chromatic
+
+# --- EHR frontend team ------------------------------------------------------
+apps/ehr/                           @mkowalew-chromatic
+
+# --- Portal frontend team ---------------------------------------------------
+apps/portal/                        @mkowalew-chromatic
+apps/portal-mobile/                 @mkowalew-chromatic
+
+# --- Design system team -----------------------------------------------------
+packages/design-system/             @mkowalew-chromatic
+packages/design-system-native/      @mkowalew-chromatic
+.github/workflows/chromatic.yml     @mkowalew-chromatic
+.github/workflows/chromatic-native.yml @mkowalew-chromatic
+
+# --- Platform / release engineering (cross-team; changes here affect everyone)
+.changeset/config.json              @mkowalew-chromatic
+turbo.json                          @mkowalew-chromatic
+package.json                        @mkowalew-chromatic
+package-lock.json                   @mkowalew-chromatic
+scripts/                            @mkowalew-chromatic
+deploy/                             @mkowalew-chromatic
+.github/                            @mkowalew-chromatic
+apps/playwright-e2e/                @mkowalew-chromatic

@@ -1,0 +1,34 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Tooltip } from './Tooltip';
+import { Badge } from '../Badge';
+import { figmaDesign } from '../../figma/links';
+
+const meta: Meta<typeof Tooltip> = { title: 'Components/Tooltip', parameters: { design: figmaDesign('Components/Tooltip') }, component: Tooltip, tags: ['autodocs'] };
+export default meta;
+type Story = StoryObj<typeof Tooltip>;
+
+export const StatusHint: Story = {
+  render: () => (
+    <Tooltip content="Patient arrived and vitals collected">
+      <Badge variant="in-office" dot>In Office</Badge>
+    </Tooltip>
+  ),
+};
+
+export const Hover: Story = {
+  render: () => (
+    <Tooltip content="Patient arrived and vitals collected">
+      <Badge variant="in-office" dot>In Office</Badge>
+    </Tooltip>
+  ),
+  parameters: { pseudo: { hover: '.cc-tooltip' } },
+};
+
+export const Focus: Story = {
+  render: () => (
+    <Tooltip content="Patient arrived and vitals collected">
+      <Badge variant="in-office" dot>In Office</Badge>
+    </Tooltip>
+  ),
+  parameters: { pseudo: { focusWithin: '.cc-tooltip' } },
+};

@@ -1,0 +1,17 @@
+{
+  "name": "@careconnect/playwright-e2e",
+  "version": "1.0.2",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:smoke": "playwright test --grep @smoke",
+    "typecheck": "tsc --noEmit",
+    "chromatic": "chromatic --playwright"
+  },
+  "devDependencies": {
+    "@chromatic-com/playwright": "^1.0.0",
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^22.10.2",
+    "chromatic": "^18.5.0"
+  }
+}

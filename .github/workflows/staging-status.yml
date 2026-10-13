@@ -1,0 +1,45 @@
+name: Staging
+
+# Mirrors the latest staging deploy so the README can show a live status badge
+# for this environment: GitHub's badges are per workflow, and one deploy.yml run
+# covers both environments. deploy.yml dispatches this after its staging job
+# finishes; the run passes or fails with that job. Not meant to be run by hand.
+
+run-name: Staging ${{ inputs.result }} — ${{ inputs.unit }} @ ${{ inputs.ref }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      unit:
+        description: Release unit that was deployed
+        type: string
+        required: true
+      ref:
+        description: Tag or commit that was deployed
+        type: string
+        required: true
+      result:
+        description: Result of the staging job in deploy.yml (success | failure)
+        type: string
+        required: true
+      deploy_run:
+        description: URL of the deploy.yml run
+        type: string
+        required: true
+
+permissions: {}
+
+jobs:
+  status:
+    name: staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report the deploy result
+        env:
+          UNIT: ${{ inputs.unit }}
+          REF: ${{ inputs.ref }}
+          RESULT: ${{ inputs.result }}
+          DEPLOY_RUN: ${{ inputs.deploy_run }}
+        run: |
+          echo "**Staging:** $UNIT @ $REF — $RESULT ([deploy run]($DEPLOY_RUN))" >> "$GITHUB_STEP_SUMMARY"
+          [ "$RESULT" = success ]

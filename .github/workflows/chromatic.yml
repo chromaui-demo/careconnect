@@ -1,0 +1,172 @@
+name: Chromatic
+
+# Design-system visual review. The main run auto-accepts, so the baseline every
+# PR is compared against is whatever is on main, not the last manually accepted
+# build.
+#
+# Deliberately unfiltered by path. A `paths:` filter would stop the workflow
+# from triggering at all on PRs that miss it, and a check that never starts
+# stays pending forever — so requiring Chromatic's "UI Tests" / "UI Review"
+# status in branch protection would deadlock every non-design-system PR. (A job
+# skipped by an `if:` is different: it reports a conclusion, which branch
+# protection accepts.) TurboSnap makes the unfiltered runs cheap — a PR that
+# touches no story snapshots nothing and bills nothing; the cost is one
+# Storybook build per run, and a PR that changes only documentation skips even
+# that (scripts/docs-only-change.sh).
+on:
+  pull_request:
+  push:
+    branches: [main]
+  # Required checks must also report on merge-queue refs, or the queue stalls
+  # waiting for a status that never arrives. Harmless when no queue is enabled.
+  merge_group:
+
+# Cancel superseded PR runs — a new push to a PR makes the previous Chromatic
+# build irrelevant. Main runs are never cancelled: each one auto-accepts and
+# becomes the baseline for later PRs, so losing one would leave the next PR
+# comparing against a stale build.
+concurrency:
+  group: chromatic-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  visual-review:
+    name: Visual regression review
+    runs-on: ubuntu-latest
+    # Chromatic can't run without a project token; skip rather than fail red on
+    # forks and on repos where the secret hasn't been set up yet.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # Chromatic uses git history to pick a baseline
+
+      # Markdown and docs/ only: no story or visual test can change, so skip
+      # the build and let Chromatic mark the commit as passing. The UI Tests /
+      # UI Review statuses still post, so the required checks don't stall.
+      - name: Documentation-only change?
+        id: docs
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: scripts/docs-only-change.sh
+
+      - uses: actions/setup-node@v7
+        if: steps.docs.outputs.docs_only != 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        if: steps.docs.outputs.docs_only != 'true'
+        run: npm ci
+
+      # Skip rather than fail red until CHROMATIC_PROJECT_TOKEN is configured
+      # (see packages/design-system/CONTRIBUTING.md). secrets.* can't be read in
+      # a job-level `if`, so the token is promoted to env above and tested here.
+      #
+      # The official action rather than `npx chromatic`: on pull_request events
+      # actions/checkout checks out GitHub's synthetic merge commit, and the bare
+      # CLI then reports the build against that commit instead of the PR head —
+      # so the "UI Tests" / "UI Review" statuses never land on the PR and
+      # Chromatic's PR review stays pending forever. The action forwards the
+      # pull_request head SHA and branch from the event payload.
+      - name: Publish to Chromatic
+        if: env.CHROMATIC_PROJECT_TOKEN != ''
+        uses: chromaui/action@v18
+        with:
+          projectToken: ${{ env.CHROMATIC_PROJECT_TOKEN }}
+          workingDir: packages/design-system
+          skip: ${{ steps.docs.outputs.docs_only == 'true' }}
+          exitZeroOnChanges: true
+          autoAcceptChanges: ${{ github.event_name == 'push' }}
+          # TurboSnap: snapshot only the stories the commit actually affects,
+          # traced through the module graph. Needs the full git history fetched
+          # above. The CLI appends the stats-json flag to build-storybook on its
+          # own, so the build script needs no change. Chromatic falls back to a
+          # full run when it can't trace a change (the first build on a branch);
+          # when it can, it bypasses every unaffected snapshot and carries the
+          # ancestor build's status over.
+          onlyChanged: true
+          # The LoginScreen stories render DESIGN_SYSTEM_VERSION (a build-time
+          # define from this package.json) and the apps' versions (imported
+          # from theirs). TurboSnap ignores version-only package.json changes,
+          # so a Version Packages merge would skip the build and leave the main
+          # permalink showing the previous release. Matched against paths from
+          # the repo root.
+          externals: '{packages/design-system,apps/ehr,apps/portal}/package.json'
+
+  # Vitest visual tests (packages/design-system/src/**/*.visual.test.tsx): plain
+  # Vitest tests in a real browser, where every takeSnapshot() and the end of
+  # each test becomes a Chromatic snapshot — multi-step flows and compositions
+  # that no single story renders. Chromatic keeps these in their own project,
+  # so this job has its own token and skips until that secret is set.
+  vitest-visual:
+    name: Vitest visual tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_VITEST_PROJECT_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # baseline selection and TurboSnap both read git history
+
+      # Markdown and docs/ only: no story or visual test can change, so skip
+      # the build and let Chromatic mark the commit as passing. The UI Tests /
+      # UI Review statuses still post, so the required checks don't stall.
+      - name: Documentation-only change?
+        id: docs
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: scripts/docs-only-change.sh
+
+      - uses: actions/setup-node@v7
+        if: steps.docs.outputs.docs_only != 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        if: env.CHROMATIC_PROJECT_TOKEN != '' && steps.docs.outputs.docs_only != 'true'
+        run: npm ci
+
+      - name: Install Playwright browser
+        if: env.CHROMATIC_PROJECT_TOKEN != '' && steps.docs.outputs.docs_only != 'true'
+        run: npx playwright install --with-deps chromium
+
+      # Writes the DOM archives to packages/design-system/.vitest/chromatic.
+      # Assertion failures are reported by CI / design-system; upload whatever
+      # was captured anyway so reviewers still see the snapshots.
+      - name: Run visual tests
+        if: env.CHROMATIC_PROJECT_TOKEN != '' && steps.docs.outputs.docs_only != 'true'
+        continue-on-error: true
+        run: npm run test:visual
+
+      - name: Publish to Chromatic
+        if: env.CHROMATIC_PROJECT_TOKEN != ''
+        uses: chromaui/action@v18
+        with:
+          projectToken: ${{ env.CHROMATIC_PROJECT_TOKEN }}
+          workingDir: packages/design-system
+          vitest: true
+          skip: ${{ steps.docs.outputs.docs_only == 'true' }}
+          exitZeroOnChanges: true
+          autoAcceptChanges: ${{ github.event_name == 'push' }}
+          # TurboSnap from Vite's module graph (`turboSnap: true` on the plugin
+          # in vite.config.ts): only tests whose imports changed re-snapshot.
+          # The stylesheets and setup file are loaded outside any test's
+          # import graph, so a change to them forces a full run.
+          onlyChanged: true
+          externals: '{packages/design-system/src/styles/**,packages/design-system/vitest.visual.setup.ts}'

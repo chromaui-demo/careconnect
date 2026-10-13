@@ -1,0 +1,107 @@
+name: Deploy
+
+# Deploys ONE release unit (api, ehr or portal) through staging to production.
+#
+# Dispatched automatically by release.yml for every deployable unit that got a
+# new tag, and by hand (Actions → Deploy → Run workflow) to redeploy any tag or
+# commit — e.g. to re-ship a known-good API after a rollback. Each run is one
+# unit, so the Actions history reads as a per-team deploy log.
+#
+# Flow: build the unit's artifact with the staging config → ship it with
+# deploy/remote-deploy.sh → run the full Playwright end-to-end suite against
+# staging. That suite is the production gate: when it passes, production
+# deploys automatically (same steps, @smoke tests only); when it fails, staging
+# is rolled back, production is never touched, and the run stays red until
+# someone acts on it — fix and release again, or re-run. Production is never
+# deployed without a green staging run: there is no production-only option.
+#
+# Per-environment configuration lives in GitHub Environments "staging" and
+# "production" (see docs/RELEASE.md § One-time setup):
+#   secrets  DEPLOY_CONFIG   contents of the environment's careconnect.env
+#            DEPLOY_SSH_KEY  private key for VM_USER@VM_HOST from that config
+#   vars     DEPLOY_KNOWN_HOSTS  (optional) known_hosts entry for VM_HOST
+#            EHR_URL, PORTAL_URL  public URLs for the end-to-end tests
+#                                 (required on staging: no URLs, no gate)
+
+run-name: Deploy ${{ inputs.unit }} @ ${{ inputs.ref }} (${{ inputs.environments }})
+
+on:
+  workflow_dispatch:
+    inputs:
+      unit:
+        description: Release unit to deploy
+        type: choice
+        required: true
+        options: [api, ehr, portal]
+      ref:
+        description: 'Tag or commit to deploy (e.g. @careconnect/ehr@1.2.0)'
+        type: string
+        required: true
+      environments:
+        description: Where to deploy
+        type: choice
+        default: staging+production
+        options: [staging+production, staging]
+
+# One deploy per unit at a time; deploys of different units run in parallel.
+concurrency:
+  group: deploy-${{ inputs.unit }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  staging:
+    uses: ./.github/workflows/deploy-environment.yml
+    with:
+      environment: staging
+      unit: ${{ inputs.unit }}
+      ref: ${{ inputs.ref }}
+      suite: full
+    secrets: inherit
+
+  production:
+    needs: staging
+    # Promote automatically when the staging gate passed. A failed or cancelled
+    # staging run never reaches production.
+    if: inputs.environments == 'staging+production'
+    uses: ./.github/workflows/deploy-environment.yml
+    with:
+      environment: production
+      unit: ${{ inputs.unit }}
+      ref: ${{ inputs.ref }}
+      suite: smoke
+    secrets: inherit
+
+  # Mirror each environment's result to its own workflow (staging-status.yml,
+  # production-status.yml) so the README shows a live badge per environment:
+  # GitHub's badges are per workflow, and this run covers both environments.
+  report-status:
+    name: Report ${{ matrix.environment }} status
+    needs: [staging, production]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    strategy:
+      matrix:
+        environment: [staging, production]
+    steps:
+      - name: Dispatch ${{ matrix.environment }}-status.yml
+        # Only environments this run actually deployed. Skipped (staging-only
+        # run, or staging failed so production was never touched) and
+        # cancelled leave the environment's last reported status standing.
+        if: contains(fromJSON('["success", "failure"]'), needs[matrix.environment].result)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ENVIRONMENT: ${{ matrix.environment }}
+          RESULT: ${{ needs[matrix.environment].result }}
+          UNIT: ${{ inputs.unit }}
+          REF: ${{ inputs.ref }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          DEPLOY_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh workflow run "$ENVIRONMENT-status.yml" --ref "$DEFAULT_BRANCH" \
+            -f unit="$UNIT" -f ref="$REF" -f result="$RESULT" -f deploy_run="$DEPLOY_RUN"

@@ -1,0 +1,35 @@
+{
+  "name": "@careconnect/api",
+  "version": "1.0.4",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "db:seed": "tsx src/db/seed.ts",
+    "db:migrate": "tsx src/db/run-migrations.ts",
+    "db:backup": "tsx src/db/backup-cli.ts",
+    "db:rotate-password": "tsx src/db/rotate-password.ts",
+    "test": "node --import tsx --test src/db/migrator.test.ts src/db/run-migrations.test.ts src/db/migrations.test.ts src/db/backup.test.ts src/db/seeded-password.test.ts"
+  },
+  "dependencies": {
+    "@careconnect/types": "*",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^11.0.3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.4",
+    "typescript": "^5.9.3"
+  }
+}

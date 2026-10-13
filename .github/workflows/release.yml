@@ -1,0 +1,137 @@
+name: Release
+
+# Continuous release train, one lane per release unit.
+#
+# On every push to main:
+#   * pending changesets  → open or refresh the "Version Packages" PR
+#                            (independent version bumps + per-package CHANGELOGs)
+#   * no pending changesets → tag every workspace whose version is untagged
+#                            (`@careconnect/<name>@<version>`), create a GitHub
+#                            Release for each *release unit* that was tagged, and
+#                            dispatch a deploy for each deployable one.
+#
+# Only packages with changes get a new version, tag, release and deploy — a
+# portal-only PR produces a portal-only release. See docs/RELEASE.md.
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  release:
+    name: Version or tag
+    runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      deploy-matrix: ${{ steps.deploy-matrix.outputs.matrix }}
+    env:
+      # Optional GitHub App so the Version Packages PR is opened by the app,
+      # not GITHUB_TOKEN — PRs opened with GITHUB_TOKEN never trigger CI, so
+      # the required checks would never run on it. Without the app the PR is
+      # still created; CI on it must then be triggered by closing/reopening or
+      # pushing an empty commit. See docs/RELEASE.md § One-time setup.
+      RELEASE_BOT_APP_ID: ${{ secrets.RELEASE_BOT_APP_ID }}
+    steps:
+      - name: Mint GitHub App token
+        id: app-token
+        if: env.RELEASE_BOT_APP_ID != ''
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Every workspace is private, so the "publish" step is `changeset publish`
+      # in tag-only mode: it creates git tags for untagged versions and pushes
+      # nothing to a registry (privatePackages.tag in .changeset/config.json).
+      # The action skips publishing entirely when publish-script is unset.
+      # GitHub Releases are created below for release units only, not for the
+      # shared packages that are tagged alongside them.
+      - name: Version Packages PR, or tag
+        id: changesets
+        uses: changesets/action@v2
+        with:
+          version-script: npm run version-packages
+          publish-script: npm run release:tag
+          commit-message: 'Version packages'
+          pr-title: 'Version packages'
+          create-github-releases: false
+          push-git-tags: true
+          github-token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+
+      # Let the Version Packages PR merge itself once its required checks pass,
+      # so a release needs no human on the merge button. Requires
+      # "Allow auto-merge" in the repository settings; harmless otherwise.
+      - name: Enable auto-merge on the Version Packages PR
+        if: steps.changesets.outputs.pr-number != '' && vars.AUTO_MERGE_VERSION_PR == 'true'
+        continue-on-error: true
+        run: gh pr merge --auto --squash "${{ steps.changesets.outputs.pr-number }}"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Releases for release units
+        if: steps.changesets.outputs.published == 'true'
+        run: node scripts/github-releases.mjs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Work out which units to deploy
+        id: deploy-matrix
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          PUBLISHED: ${{ steps.changesets.outputs.published-packages }}
+        run: |
+          matrix=$(node --input-type=module -e '
+            import { RELEASE_UNITS } from "./scripts/release-units.mjs";
+            const published = JSON.parse(process.env.PUBLISHED || "[]");
+            const rows = RELEASE_UNITS
+              .filter((u) => u.deployable)
+              .flatMap((u) => published.filter((p) => p.name === u.name).map((p) => ({ unit: u.unit, tag: `${p.name}@${p.version}` })));
+            console.log(JSON.stringify(rows));
+          ')
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
+          echo "Deploying: ${matrix}"
+
+  deploy:
+    name: Dispatch deploy
+    needs: release
+    if: needs.release.outputs.published == 'true' && needs.release.outputs.deploy-matrix != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.release.outputs.deploy-matrix) }}
+    steps:
+      # Each unit gets its own "Deploy" run (staging → end-to-end gate → production),
+      # visible in the Actions tab as "Deploy <unit> @ <tag>".
+      - name: Dispatch deploy.yml for ${{ matrix.unit }}
+        run: >
+          gh workflow run deploy.yml
+          --repo "${{ github.repository }}"
+          --ref main
+          -f unit="${{ matrix.unit }}"
+          -f ref="${{ matrix.tag }}"
+          -f environments="staging+production"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

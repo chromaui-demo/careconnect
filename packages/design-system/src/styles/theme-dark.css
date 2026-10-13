@@ -1,0 +1,33 @@
+/* Opt-in dark theme: set data-theme="dark" on <html> (or any ancestor).
+   Overrides the neutral, -subtle and -text tokens from tokens.css; brand and
+   status fills are shared by both themes. Kept out of tokens.css so the Figma token export
+   (scripts/export-figma-tokens.mjs, which reads the :root block) stays the
+   light theme. */
+
+[data-theme='dark'] {
+  --cc-primary-subtle: #12383A;
+  --cc-accent-subtle: #3A2620;
+
+  --cc-primary-text: #14ADB3;
+  --cc-success-text: #2FAF9F;
+  --cc-warning-text: #E9C46A;
+  --cc-error-text: #E97E63;
+  --cc-info-text: #71A2C0;
+
+  --cc-success-subtle: #12302C;
+  --cc-warning-subtle: #33291A;
+  --cc-error-subtle: #3A2620;
+  --cc-info-subtle: #172B3A;
+
+  --cc-bg: #0F1720;
+  --cc-bg-elevated: #17212B;
+  --cc-bg-muted: #1F2A36;
+  --cc-border: #2C3A48;
+  --cc-border-strong: #3E4E5E;
+
+  --cc-text: #E6EDF3;
+  --cc-text-secondary: #A9B4C0;
+  --cc-text-muted: #939DA8;
+
+  color-scheme: dark;
+}

@@ -1,0 +1,32 @@
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${DOMAIN} _;
+
+    # API backend
+    location /api/ {
+        proxy_pass http://127.0.0.1:5000/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # Staff EHR
+    location /ehr {
+        alias ${WWW_ROOT}/ehr;
+        index index.html;
+        try_files $uri $uri/ /ehr/index.html;
+    }
+
+    # Patient portal (default)
+    location / {
+        root ${WWW_ROOT}/portal;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?)$ {
+        expires 7d;
+        add_header Cache-Control "public, immutable";
+    }
+}

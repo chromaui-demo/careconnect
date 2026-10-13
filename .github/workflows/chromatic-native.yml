@@ -1,0 +1,153 @@
+name: Chromatic (React Native)
+
+# Visual review for the React Native patient portal: the Storybook app in
+# apps/portal-mobile (its screen stories plus every
+# @careconnect/design-system-native story) is built for Android and captured
+# by Chromatic on hosted Android emulators.
+#
+# Android only, on purpose: an iOS build needs a macOS runner, which bills at
+# about ten times the Linux rate. To add iOS back, restore a `build-ios` job on
+# `macos-latest` that runs `npx chromatic react-native-build --platform=ios`
+# and tars `storybook.app`, and unpack it next to the APK in `visual-review`.
+#
+# Kept apart from chromatic.yml because it is a different Chromatic project
+# (CHROMATIC_NATIVE_PROJECT_TOKEN, with React Native enabled by Chromatic).
+#
+# Like chromatic.yml it is deliberately unfiltered by path: a `paths:` filter
+# stops the workflow from starting at all, and a required check that never
+# starts leaves PRs pending forever. Chromatic's TurboSnap isn't available for
+# React Native yet, so every capture snapshots every story. Instead the
+# `affected` job asks turbo whether the app or anything it depends on changed,
+# and the build jobs are skipped by `if:` when not. Skipped jobs still report
+# a conclusion, which branch protection accepts.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  # Required checks must also report on merge-queue refs, or the queue stalls.
+  merge_group:
+
+# Cancel superseded PR runs only. Main runs auto-accept and become the
+# baseline, and cancelling a merge-queue run ejects the PR from the queue.
+concurrency:
+  group: chromatic-native-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  affected:
+    name: Detect mobile changes
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    permissions:
+      contents: read
+    env:
+      # secrets.* can't be read in a job-level `if`, so promote it here; the
+      # build jobs skip until the token is configured instead of failing red.
+      HAS_TOKEN: ${{ secrets.CHROMATIC_NATIVE_PROJECT_TOKEN != '' }}
+      TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # turbo --affected diffs against the base
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # Only turbo is needed here; skip install scripts (native postinstalls,
+      # the Playwright download) to keep this job fast.
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      # `turbo ls --affected` includes dependents, so the app is listed when it,
+      # the native design system, api-client, types or the lockfile changed.
+      # A first push to main has no usable `before` SHA; build in that case.
+      - name: Is the mobile app affected?
+        id: check
+        run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "CHROMATIC_NATIVE_PROJECT_TOKEN is not set; skipping."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ -z "$TURBO_SCM_BASE" ] || [ "$TURBO_SCM_BASE" = "0000000000000000000000000000000000000000" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          affected=$(npx turbo ls --affected --output=json | node -e '
+            let s = "";
+            process.stdin.on("data", (d) => (s += d)).on("end", () => {
+              const names = JSON.parse(s).packages.items.map((p) => p.name);
+              process.stdout.write(String(names.includes("@careconnect/portal-mobile")));
+            });')
+          echo "Mobile app affected: $affected"
+          echo "run=$affected" >> "$GITHUB_OUTPUT"
+
+  build-android:
+    name: Build Storybook (Android)
+    needs: affected
+    if: needs.affected.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          CARECONNECT_SKIP_PLAYWRIGHT_BROWSERS: '1'
+
+      # expo prebuild + gradlew assembleRelease (x86_64 for the emulator).
+      - name: Build
+        working-directory: apps/portal-mobile
+        run: npx chromatic react-native-build --platform=android --output-dir=build
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: storybook-android
+          path: apps/portal-mobile/build/storybook.apk
+          retention-days: 3
+
+  visual-review:
+    name: Visual regression review (React Native)
+    needs: [build-android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # Chromatic uses git history to pick a baseline
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: storybook-android
+          path: apps/portal-mobile/storybook-static
+
+      # The official action rather than `npx chromatic`, for the same reason as
+      # chromatic.yml: it reports the build against the PR head commit, so the
+      # "UI Tests" / "UI Review" statuses land on the PR. Uploads the prebuilt
+      # APK; no TurboSnap (unsupported for React Native).
+      - name: Publish to Chromatic
+        uses: chromaui/action@v18
+        with:
+          projectToken: ${{ secrets.CHROMATIC_NATIVE_PROJECT_TOKEN }}
+          workingDir: apps/portal-mobile
+          storybookBuildDir: storybook-static
+          exitZeroOnChanges: true
+          autoAcceptChanges: ${{ github.event_name == 'push' }}
