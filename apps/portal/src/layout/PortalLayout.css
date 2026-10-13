@@ -122,6 +122,10 @@
   margin-inline: auto;
 }
 
+.portal-attention {
+  margin-bottom: var(--cc-space-8);
+}
+
 .portal-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
