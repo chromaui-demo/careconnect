@@ -20,7 +20,7 @@ type Story = StoryObj<typeof AttentionSummary>;
 
 const everythingDue: AttentionItem[] = [
   { id: 'visit', label: 'Next visit', value: 'Tue, Oct 20', detail: '9:30 AM · Dr. Chen · Follow-up', actionLabel: 'View visit', onAction: fn() },
-  { id: 'results', label: 'Results to review', value: 1, detail: 'Lipid panel · 199 mg/dL', actionLabel: 'View results', onAction: fn(), needsAction: true },
+  { id: 'results', label: 'Results to review', value: 1, detail: 'Outside the normal range', actionLabel: 'View results', onAction: fn(), needsAction: true },
   { id: 'messages', label: 'Unread messages', value: 2, detail: 'From your care team', actionLabel: 'Open messages', onAction: fn() },
   { id: 'balance', label: 'Balance due', value: '$45.00', detail: 'From your Sep 28 visit', actionLabel: 'Pay bill', onAction: fn(), needsAction: true },
   { id: 'refills', label: 'Refills in progress', value: 1, detail: 'Lisinopril 10 mg', actionLabel: 'View medications', onAction: fn() },
@@ -33,6 +33,8 @@ export const EverythingDue: Story = {
     for (const item of everythingDue) {
       await expect(canvas.getByText(item.label)).toBeVisible();
     }
+    // Results show a count only; test names and values stay on the Results page.
+    await expect(canvas.queryByText(/Lipid panel|mg\/dL/)).not.toBeInTheDocument();
     await userEvent.click(canvas.getByRole('button', { name: 'View results' }));
     await expect(args.items[1].onAction).toHaveBeenCalledOnce();
   },

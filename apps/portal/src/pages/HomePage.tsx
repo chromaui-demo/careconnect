@@ -35,15 +35,14 @@ function buildItems(data: HomeData, go: (path: string) => void): AttentionItem[]
     });
   }
 
-  const abnormal = (data.results ?? []).filter((r) => r.abnormal);
-  if (abnormal.length > 0) {
-    const first = abnormal[0];
-    const value = first.resultValue != null ? ` · ${first.resultValue}${first.resultUnit ? ` ${first.resultUnit}` : ''}` : '';
+  // Only the count: test names and values stay on the Results page.
+  const abnormal = (data.results ?? []).filter((r) => r.abnormal).length;
+  if (abnormal > 0) {
     items.push({
       id: 'results',
       label: 'Results to review',
-      value: abnormal.length,
-      detail: abnormal.length === 1 ? `${first.testName}${value}` : `${first.testName} and ${abnormal.length - 1} more`,
+      value: abnormal,
+      detail: 'Outside the normal range',
       actionLabel: 'View results',
       onAction: () => go('/results'),
       needsAction: true,
