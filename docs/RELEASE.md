@@ -149,13 +149,19 @@ Without these, `release.yml` still works with `GITHUB_TOKEN`, but CI on the Vers
 
 ### A self-hosted runner on the LAN
 
-The VMs sit on a private network behind a Cloudflare tunnel, so GitHub-hosted runners cannot SSH to them. `deploy-environment.yml` therefore runs on a self-hosted runner labelled `careconnect-lan`. It is registered at organization level, in a runner group named `careconnect` that only this repository may use; an organization admin creates the group. Install the runner on any always-on LAN host (the staging VM works well):
+The VMs sit on a private network behind a Cloudflare tunnel, so GitHub-hosted runners cannot SSH to them. `deploy-environment.yml` therefore runs on a self-hosted runner labelled `careconnect-lan`, registered to this repository only. Install it on any always-on LAN host:
 
 ```bash
-RUNNER_ORG=<org> RUNNER_GROUP=careconnect deploy/setup-runner.sh --config deploy/<environment>.env
+deploy/setup-runner.sh --config deploy/<environment>.env
 ```
 
-The script registers the runner and installs it as a systemd service. Minting the registration token needs an organization admin or the "manage runners" organization permission; without either, ask an admin for a token from the runner group's page and pass it as `RUNNER_TOKEN`. Leave `RUNNER_ORG` unset to register the runner to the repository instead. The deploy workflow is dispatch-only and is never triggered by pull requests; keep it that way, so code from a pull request never runs on a host that can reach production. The runner host needs `git`, `curl`, `rsync`, `tar`, `unzip`, and passwordless `sudo` (for `playwright install --with-deps`).
+`VM_USER` in the config is only the admin account that installs the runner; it needs passwordless `sudo`. The runner itself runs as its own system user (`gha-careconnect` by default): no password, no login shell, not in any admin group. Jobs therefore never have `sudo`, so the script also installs Playwright's Chromium system libraries on the host once, and the deploy job installs the browser without `--with-deps`. The host needs `git`, `curl`, `rsync`, `tar`, `unzip` and Node.js. Minting the registration token needs admin on the repository through the GitHub CLI; otherwise pass a token from **Settings → Actions → Runners** as `RUNNER_TOKEN`. Set `RUNNER_REPO`, `RUNNER_LABELS` and `RUNNER_USER` to install another repository's runner on the same host.
+
+This repository is public, so its self-hosted runner is guarded in three ways. Keep all three:
+
+- **Trusted triggers only.** The deploy workflow runs on dispatch from `main` and from the release workflow, never on `pull_request`. Don't add `self-hosted` to any job that runs on pull requests.
+- **Approval for outside contributors.** Workflows from pull requests by anyone outside the repository's collaborators wait for a maintainer's approval (**Settings → Actions → General**). Before approving, check the PR for changes under `.github/`: a fork can edit a workflow to target this runner.
+- **Secrets only in environments.** Deploy keys live in the `staging` and `production` environments, which only `main` can deploy from.
 
 ### Environments: `staging` and `production`
 
