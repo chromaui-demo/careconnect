@@ -132,7 +132,7 @@ The installer:
 | EHR | http://localhost:4000 |
 | Portal | http://localhost:4001 |
 
-Sign in to the EHR as `admin@se-tools.net` with the seeded demo password `CareConnect1!`. For the Billing section, use `billing@se-tools.net` for full access or `manager@se-tools.net` for read-only access; both share the same password.
+Sign in to the EHR as `admin@se-tools.net` with the local development password from `apps/api/src/db/seeded-password.ts`. For the Billing section, use `billing@se-tools.net` for full access or `manager@se-tools.net` for read-only access; both share the same password.
 
 Press `Ctrl+C` to stop all dev servers.
 
@@ -629,7 +629,7 @@ curl -s -X POST http://ehr.example.com/api/auth/login \
 
 Also worth knowing:
 
-- The default staff password is the seeded demo password, `CareConnect1!`.
+- Seeded accounts use the environment's `SEEDED_PASSWORD`, from `/etc/careconnect/careconnect-api.env` on the VM.
 - After fixing the routing, redeploy the UI with `./deploy/remote-install.sh --build-from-source --config deploy/<environment>.env`.
 - If the JWT secret changed, existing tokens are invalid; sign in again.
 
@@ -667,4 +667,4 @@ sudo /opt/careconnect/deploy/update.sh
 | Release process | [docs/RELEASE.md](../docs/RELEASE.md) |
 | Uninstall from the VM | `sudo /opt/careconnect/deploy/uninstall.sh` |
 | API logs | `journalctl -u careconnect-api -f` |
-| Staff login | `admin@se-tools.net` with the seeded demo password `CareConnect1!` |
+| Staff login | `admin@se-tools.net` with the environment's `SEEDED_PASSWORD` (`/etc/careconnect/careconnect-api.env`) |

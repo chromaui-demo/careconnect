@@ -24,8 +24,8 @@ Six **release units**, each owned by one team and released independently — `ap
 | Storybook MCP for agents | Committed in `.mcp.json` (Claude Code) and `.codex/config.toml` (Codex): `careconnect-storybook` (published from `main` by Chromatic, docs tools) and `careconnect-storybook-local` (`npm run storybook`, adds preview and `test-run`). One Chromatic sign-in per person — [docs/STORYBOOK-MCP.md](docs/STORYBOOK-MCP.md) |
 | Chromatic MCP for agents | Build, visual-change and accessibility results through the Chromatic plugin (`chromatic@chromatic`, enabled in `.claude/settings.json`; Codex installs it by hand). Project id in the root `chromatic.config.json` — [docs/STORYBOOK-MCP.md § Chromatic MCP](docs/STORYBOOK-MCP.md#chromatic-mcp-build-and-test-results) |
 | Figma ↔ Storybook bridge | [docs/FIGMA.md](docs/FIGMA.md) — Figma URLs in `packages/design-system/src/figma/links.json`; after editing `tokens.css` run `npm run tokens:export --workspace=@careconnect/design-system` |
-| Staff login | `admin@se-tools.net` / `CareConnect1!` (every seeded account; see README § Demo Accounts & Data) |
-| Billing role login | `billing@se-tools.net` (full access) or `manager@se-tools.net` (view-only) / same password |
+| Staff login | `admin@se-tools.net` with the local development password from `apps/api/src/db/seeded-password.ts` (every seeded account; see README § Demo Accounts & Data). Deployed environments use their own `SEEDED_PASSWORD`; never write it into the repository |
+| Billing role login | `billing@se-tools.net` (full access) or `manager@se-tools.net` (view-only), same password |
 
 See [README.md](README.md), [deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md).
 

@@ -90,25 +90,25 @@ In production the frontends are served on ports 80, 443, or 8080 depending on th
 
 ### Staff accounts (EHR)
 
-| Email | Password | Name | Role |
-|---|---|---|---|
-| `admin@se-tools.net` | `CareConnect1!` | Admin User | Administrator |
-| `dr.chen@se-tools.net` | `CareConnect1!` | Sarah Chen | Provider |
-| `dr.torres@se-tools.net` | `CareConnect1!` | Michael Torres | Provider |
-| `staff@se-tools.net` | `CareConnect1!` | Lisa Wong | Staff |
-| `billing@se-tools.net` | `CareConnect1!` | Rita Alvarez | Billing |
-| `manager@se-tools.net` | `CareConnect1!` | James Patel | Manager |
+| Email | Name | Role |
+|---|---|---|
+| `admin@se-tools.net` | Admin User | Administrator |
+| `dr.chen@se-tools.net` | Sarah Chen | Provider |
+| `dr.torres@se-tools.net` | Michael Torres | Provider |
+| `staff@se-tools.net` | Lisa Wong | Staff |
+| `billing@se-tools.net` | Rita Alvarez | Billing |
+| `manager@se-tools.net` | James Patel | Manager |
 
-`CareConnect1!` is the local development password ([`apps/api/src/db/seeded-password.ts`](apps/api/src/db/seeded-password.ts)). Deployed environments use their own: the installer generates `SEEDED_PASSWORD` in `/etc/careconnect/careconnect-api.env`, and the API refuses to seed accounts with the public default under `NODE_ENV=production`. To change an existing environment, run `npm run db:rotate-password --workspace=@careconnect/api` with `NEW_SEEDED_PASSWORD`, then set the same value as `SEEDED_PASSWORD` on the VM and as the environment's `E2E_PASSWORD` secret.
+**Passwords.** Locally, every account uses the development default in [`apps/api/src/db/seeded-password.ts`](apps/api/src/db/seeded-password.ts). Deployed environments use their own password: the installer generates `SEEDED_PASSWORD` in `/etc/careconnect/careconnect-api.env`, and the API refuses to seed accounts with the development default under `NODE_ENV=production`. Presenters get the demo environments' passwords from the presenter playbook, not from this repository. To change an existing environment's password, run `npm run db:rotate-password --workspace=@careconnect/api` with `NEW_SEEDED_PASSWORD`, then set the same value as `SEEDED_PASSWORD` on the VM and as the environment's `E2E_PASSWORD` secret.
 
 Billing (claims, ERAs, patient AR, and master data) lives inside the EHR at `/billing` and is gated by role. Administrators and Billing users have full view, edit, and delete access; Managers have read-only access; other roles do not see the section.
 
 ### Patient accounts (Portal)
 
-| Email | Password | Name | Role |
-|---|---|---|---|
-| `alice.smith@se-tools.net` | `CareConnect1!` | Alice Smith | Patient |
-| `bob.johnson@se-tools.net` | `CareConnect1!` | Bob Johnson | Patient |
+| Email | Name | Role |
+|---|---|---|
+| `alice.smith@se-tools.net` | Alice Smith | Patient |
+| `bob.johnson@se-tools.net` | Bob Johnson | Patient |
 
 Patients see only their own visits, paperwork, and telemed sessions. The same accounts sign in to the web Portal and the mobile app.
 
