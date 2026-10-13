@@ -17,6 +17,8 @@ export interface AttentionItem {
   /** Text of the button that opens the item's page, e.g. "View results". */
   actionLabel: string;
   onAction: () => void;
+  /** Highlight items the patient has to act on, such as results to review or a balance due. */
+  needsAction?: boolean;
 }
 
 export interface AttentionSummaryProps {
@@ -65,7 +67,7 @@ export function AttentionSummary({
         <div className="cc-grid-auto cc-grid-auto--4">
           {items.map((item) => (
             <div key={item.id} className="cc-attention__item">
-              <StatCard label={item.label} value={item.value} delta={item.detail} />
+              <StatCard label={item.label} value={item.value} delta={item.detail} tone={item.needsAction ? 'attention' : 'default'} />
               <Button variant="ghost" size="sm" onClick={item.onAction}>{item.actionLabel}</Button>
             </div>
           ))}

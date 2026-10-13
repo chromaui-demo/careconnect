@@ -46,6 +46,7 @@ function buildItems(data: HomeData, go: (path: string) => void): AttentionItem[]
       detail: abnormal.length === 1 ? `${first.testName}${value}` : `${first.testName} and ${abnormal.length - 1} more`,
       actionLabel: 'View results',
       onAction: () => go('/results'),
+      needsAction: true,
     });
   }
 
@@ -67,6 +68,7 @@ function buildItems(data: HomeData, go: (path: string) => void): AttentionItem[]
       value: formatMoney(data.billing.balance),
       actionLabel: 'Pay bill',
       onAction: () => go('/bills'),
+      needsAction: true,
     });
   }
 
