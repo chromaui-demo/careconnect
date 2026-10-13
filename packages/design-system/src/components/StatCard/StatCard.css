@@ -14,3 +14,5 @@
 .cc-stat-card__delta--down { color: var(--cc-error-text); }
 .cc-stat-card__delta--neutral { color: var(--cc-text-muted); }
 .cc-stat-card__sparkline { height: 48px; margin-top: var(--cc-space-3); }
+.cc-stat-card--attention { border-left: 4px solid var(--cc-warning); }
+.cc-stat-card--attention .cc-stat-card__value { color: var(--cc-warning-text); }
