@@ -4,7 +4,7 @@
 # Design-system docs published by Chromatic from main. Sign in once per person:
 #   codex mcp login careconnect-storybook
 [mcp_servers.careconnect-storybook]
-url = "https://main--6acbb93e85153a14d4e5b1cc.chromatic.com/mcp"
+url = "https://main--6ace78da52f27f1047872614.chromatic.com/mcp"
 # Read-only. Without this, Codex asks Chromatic for every scope it offers,
 # including build and project write access.
 scopes = ["storybook:read", "project:read"]

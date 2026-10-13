@@ -14,7 +14,7 @@ accessibility violations and review comments.
 
 | Server | URL | Tools | Available |
 |--------|-----|-------|-----------|
-| `careconnect-storybook` | `https://main--6acbb93e85153a14d4e5b1cc.chromatic.com/mcp` | Docs: `docs-list`, `docs-show`, `docs-show-story` | Always. Published by Chromatic on every build; this is the `main` permalink, so it tracks the latest merged design system. Requires a Chromatic sign-in. |
+| `careconnect-storybook` | `https://main--6ace78da52f27f1047872614.chromatic.com/mcp` | Docs: `docs-list`, `docs-show`, `docs-show-story` | Always. Published by Chromatic on every build; this is the `main` permalink, so it tracks the latest merged design system. Requires a Chromatic sign-in. |
 | `careconnect-storybook-local` | `http://localhost:6006/mcp` | Docs, plus development (`get-storybook-story-instructions`, `stories-preview`, `stories-changed`, `stories-find-by-component`) and testing (`test-run`) | While `npm run storybook` runs. Reflects your working tree. |
 
 Use the published server for "what does the design system offer". Start the local

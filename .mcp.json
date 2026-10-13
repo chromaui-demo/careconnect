@@ -2,7 +2,7 @@
   "mcpServers": {
     "careconnect-storybook": {
       "type": "http",
-      "url": "https://main--6acbb93e85153a14d4e5b1cc.chromatic.com/mcp",
+      "url": "https://main--6ace78da52f27f1047872614.chromatic.com/mcp",
       "oauth": {
         "clientId": "cdf3737dff9d485485968e50b63fd8b4"
       }

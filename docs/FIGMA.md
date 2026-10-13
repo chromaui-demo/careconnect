@@ -22,9 +22,9 @@ Figma node URLs ─ src/figma/links.json ─▶ Storybook "Design" tab (addon-de
 | Design tokens export | [scripts/export-figma-tokens.mjs](../packages/design-system/scripts/export-figma-tokens.mjs) → [src/figma/tokens.json](../packages/design-system/src/figma/tokens.json) | W3C DTCG tokens generated from `tokens.css`. `npm test` fails if the committed JSON is stale. |
 | Token sheets | [src/Foundations.stories.tsx](../packages/design-system/src/Foundations.stories.tsx) | `Foundations/Tokens` — colors, type, spacing, radius, elevation rendered from the JSON. Reference page for designers, import frames for Figma, Chromatic snapshot for token changes. |
 
-Published Storybook (branch permalinks): `https://main--6acbb93e85153a14d4e5b1cc.chromatic.com`
+Published Storybook (branch permalinks): `https://main--6ace78da52f27f1047872614.chromatic.com`
 (replace `main` with any branch name). Build history:
-`https://www.chromatic.com/builds?appId=6acbb93e85153a14d4e5b1cc`.
+`https://www.chromatic.com/builds?appId=6ace78da52f27f1047872614`.
 
 ## One-time Figma setup (~30–45 minutes, done in Figma)
 
@@ -65,7 +65,7 @@ component properties derived from the args.
 
 1. Install the plugin in Figma and open it inside the library file.
 2. Paste the Storybook URL:
-   `https://main--6acbb93e85153a14d4e5b1cc.chromatic.com`.
+   `https://main--6ace78da52f27f1047872614.chromatic.com`.
    Chromatic Storybooks are private to the project; use the plugin's private
    Storybook option and sign in with the Chromatic account.
 3. Select what to import. Recommended first pass:
