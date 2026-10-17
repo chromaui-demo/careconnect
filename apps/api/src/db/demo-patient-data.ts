@@ -6,6 +6,13 @@ import { assignPaperworkToAppointment } from '../services/paperwork.js';
 const DEMO = '[demo]';
 const HISTORY_DAYS = 90;
 
+/**
+ * How many patients seed.ts creates. They are the first rows in `patients` by
+ * created_at, and only they get demo history: a patient registered later is
+ * real data and must not gain invented visits, claims or labs on restart.
+ */
+export const SEEDED_PATIENT_COUNT = 12;
+
 type DemoPatientSpec = {
   firstName: string;
   lastName: string;
@@ -535,7 +542,7 @@ function ensureHistoricalEras() {
       );
     }
 
-    const patients = queryAll('SELECT first_name, last_name FROM patients ORDER BY created_at LIMIT 12');
+    const patients = queryAll('SELECT first_name, last_name FROM patients ORDER BY created_at LIMIT ?', SEEDED_PATIENT_COUNT);
     for (let i = 0; i < patients.length; i++) {
       const name = `${String(patients[i].first_name)} ${String(patients[i].last_name)}`;
       if (queryOne('SELECT id FROM era_payments WHERE era_id = ? AND patient_name = ?', eraId, name)) continue;
@@ -549,7 +556,7 @@ function ensureHistoricalEras() {
 }
 
 function ensureUnsolicitedLabsHistory() {
-  const patients = queryAll('SELECT first_name, last_name FROM patients ORDER BY created_at LIMIT 12');
+  const patients = queryAll('SELECT first_name, last_name FROM patients ORDER BY created_at LIMIT ?', SEEDED_PATIENT_COUNT);
   const tests = ['HbA1c', 'TSH', 'Lipid Panel', 'Vitamin D', 'PSA'];
   for (let i = 0; i < patients.length; i++) {
     const name = `${String(patients[i].first_name)} ${String(patients[i].last_name)}`;
@@ -612,11 +619,13 @@ function ensureFaxInboundHistory() {
   }
 }
 
-/** Idempotent 90-day demo history for all patients and staff workflows. */
+/** Idempotent 90-day demo history for the seeded patients and staff workflows. */
 export function ensureDemoPatientWorkflows() {
   if (!queryOne('SELECT id FROM patients LIMIT 1')) return;
 
-  const patients = queryAll('SELECT id, first_name, last_name, email FROM patients ORDER BY created_at');
+  const patients = queryAll(
+    'SELECT id, first_name, last_name, email FROM patients ORDER BY created_at LIMIT ?', SEEDED_PATIENT_COUNT,
+  );
   for (let i = 0; i < patients.length; i++) {
     seedDemoPatient(buildPatientSpec(patients[i], i));
   }
