@@ -30,6 +30,9 @@ export const REQUIRES = {
   workflowApi: { unit: 'api', version: '1.1.1' },
   /** Patient search that never shows stale results. */
   ehrPatientSearch: { unit: 'ehr', version: '1.0.12' },
+  /** Clinical staff can load the tracking board's provider and location filters. */
+  staffBoardFiltersApi: { unit: 'api', version: '1.1.2' },
+  staffBoardFiltersEhr: { unit: 'ehr', version: '1.0.15' },
 } as const satisfies Record<string, { unit: Unit; version: string }>;
 
 const served = new Map<Unit, Promise<string>>();
@@ -49,13 +52,16 @@ async function readServedVersion(browser: Browser, unit: Unit): Promise<string> 
       await api.dispose();
     }
   }
-  const page = await browser.newPage();
+  // Signed out explicitly: inside a test, new contexts inherit its options,
+  // and a saved session would redirect /login away from the version line.
+  const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
   try {
+    const page = await context.newPage();
     await page.goto(`${unit === 'ehr' ? EHR_URL : PORTAL_URL}/login`);
     const line = await page.getByText(/^v\d+\.\d+\.\d+( ·|$)/).textContent();
     return line!.match(/^v(\d+\.\d+\.\d+)/)![1];
   } finally {
-    await page.close();
+    await context.close();
   }
 }
 

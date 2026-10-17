@@ -2,6 +2,7 @@ import { test, expect } from '../../support/fixtures';
 import { authFile } from '../../support/env';
 import type { Page } from '@playwright/test';
 import { expectTrackingBoardReady } from '../../support/pages';
+import { REQUIRES, skipUnlessServing } from '../../support/version';
 
 /**
  * Waits until the Claims page's three charts are drawn, so the snapshot shows
@@ -63,5 +64,24 @@ test.describe('clinical staff', () => {
     await page.goto('/billing/claims');
     await expect(page).toHaveURL(/\/visits$/);
     await expectTrackingBoardReady(page);
+  });
+
+  test.describe('filters', () => {
+    // Ends on the tracking board, which the test above already captures.
+    test.use({ disableAutoSnapshot: true });
+
+    test('can filter the tracking board by provider and location', async ({ page, browser }) => {
+      await skipUnlessServing(browser, REQUIRES.staffBoardFiltersApi, REQUIRES.staffBoardFiltersEhr);
+      await page.goto('/visits');
+      await expectTrackingBoardReady(page);
+      await expect(page.getByLabel('Location').getByRole('option', { name: 'Main Clinic' })).toBeAttached();
+      const providers = page.getByRole('combobox')
+        .filter({ has: page.getByRole('option', { name: 'All Providers', exact: true }) });
+      await expect(providers.getByRole('option', { name: 'Sarah Chen' })).toBeAttached();
+
+      await providers.selectOption('Sarah Chen');
+      await expect(page.getByRole('row', { name: /Dr\. Sarah Chen/ }).first()).toBeVisible();
+      await expect(page.getByRole('row', { name: /Dr\. Michael Torres/ })).toHaveCount(0);
+    });
   });
 });

@@ -89,9 +89,14 @@ appointmentsRouter.get('/', authRequired, (req, res) => {
     });
   }
   if (provider && provider !== 'all') {
+    // The EHR sends the provider's id. A name, with or without "Dr.", is still
+    // accepted from older clients; it never matched before, because they sent
+    // "First Last" and this compared it with "Dr. First Last".
+    const wanted = String(provider).replace(/^Dr\.\s*/, '');
     rows = rows.filter((r) => {
+      if (String(r.provider_id) === wanted) return true;
       const p = queryOne('SELECT first_name, last_name FROM users WHERE id = ?', String(r.provider_id));
-      return p && `Dr. ${p.first_name} ${p.last_name}` === provider;
+      return !!p && `${p.first_name} ${p.last_name}` === wanted;
     });
   }
   res.json(rows.map(mapAppointment));
