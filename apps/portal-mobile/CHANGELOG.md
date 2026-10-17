@@ -1,5 +1,12 @@
 # @careconnect/portal-mobile
 
+## 1.0.3
+
+### Patch Changes
+
+- Updated dependencies [482e198]
+  - @careconnect/api-client@1.1.1
+
 ## 1.0.2
 
 ### Patch Changes
