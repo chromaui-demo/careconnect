@@ -1,5 +1,11 @@
 # @careconnect/api-client
 
+## 1.1.1
+
+### Patch Changes
+
+- 482e198: Clinical staff can filter the tracking board by provider and location: the lists came from admin-only endpoints, so staff saw only "All". Choosing a provider now filters the board for everyone; it matched no visits before, because the board sent "First Last" and the API expected "Dr. First Last". The board now filters by provider id.
+
 ## 1.1.0
 
 ### Minor Changes
