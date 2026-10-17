@@ -26,6 +26,11 @@ export default defineConfig<ChromaticConfig>({
     : [['list'], ['html', { open: 'on-failure' }]],
   use: {
     ...devices['Desktop Chrome'],
+    // Draw animated UI in its final state, in the test browser and in
+    // Chromatic's capture, so a snapshot never catches a chart mid-animation.
+    // The design system's charts skip their animation under reduced motion.
+    contextOptions: { reducedMotion: 'reduce' },
+    prefersReducedMotion: 'reduce',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

@@ -24,6 +24,7 @@ import {
   vitalsTrendData,
   waitTimeTrendData,
 } from './sampleData';
+import { usePrefersReducedMotion } from './usePrefersReducedMotion';
 
 export interface VitalsTrendChartProps {
   data?: typeof vitalsTrendData;
@@ -31,6 +32,7 @@ export interface VitalsTrendChartProps {
 }
 
 export function VitalsTrendChart({ data = vitalsTrendData, height = 280 }: VitalsTrendChartProps) {
+  const animate = !usePrefersReducedMotion();
   return (
     <ChartCard title="Blood Pressure Trend" subtitle="Last 7 days · mmHg" height={height}>
       <ResponsiveContainer width="100%" height="100%">
@@ -40,8 +42,8 @@ export function VitalsTrendChart({ data = vitalsTrendData, height = 280 }: Vital
           <YAxis {...chartDefaults.axis} domain={[60, 140]} />
           <Tooltip contentStyle={{ borderRadius: 8, border: `1px solid ${chartColors.grid}` }} />
           <Legend />
-          <Line type="monotone" dataKey="systolic" name="Systolic" stroke={chartColors.primary} strokeWidth={2} dot={{ r: 3 }} />
-          <Line type="monotone" dataKey="diastolic" name="Diastolic" stroke={chartColors.info} strokeWidth={2} dot={{ r: 3 }} />
+          <Line type="monotone" dataKey="systolic" name="Systolic" stroke={chartColors.primary} strokeWidth={2} dot={{ r: 3 }} isAnimationActive={animate} />
+          <Line type="monotone" dataKey="diastolic" name="Diastolic" stroke={chartColors.info} strokeWidth={2} dot={{ r: 3 }} isAnimationActive={animate} />
         </LineChart>
       </ResponsiveContainer>
     </ChartCard>
@@ -54,6 +56,7 @@ export interface AppointmentsBarChartProps {
 }
 
 export function AppointmentsBarChart({ data = appointmentsByDayData, height = 280 }: AppointmentsBarChartProps) {
+  const animate = !usePrefersReducedMotion();
   return (
     <ChartCard title="Appointments by Day" subtitle="Scheduled vs completed" height={height}>
       <ResponsiveContainer width="100%" height="100%">
@@ -63,9 +66,9 @@ export function AppointmentsBarChart({ data = appointmentsByDayData, height = 28
           <YAxis {...chartDefaults.axis} />
           <Tooltip contentStyle={{ borderRadius: 8, border: `1px solid ${chartColors.grid}` }} />
           <Legend />
-          <Bar dataKey="scheduled" name="Scheduled" fill={chartColors.info} radius={[4, 4, 0, 0]} />
-          <Bar dataKey="completed" name="Completed" fill={chartColors.primary} radius={[4, 4, 0, 0]} />
-          <Bar dataKey="noShow" name="No-show" fill={chartColors.error} radius={[4, 4, 0, 0]} />
+          <Bar dataKey="scheduled" name="Scheduled" fill={chartColors.info} radius={[4, 4, 0, 0]} isAnimationActive={animate} />
+          <Bar dataKey="completed" name="Completed" fill={chartColors.primary} radius={[4, 4, 0, 0]} isAnimationActive={animate} />
+          <Bar dataKey="noShow" name="No-show" fill={chartColors.error} radius={[4, 4, 0, 0]} isAnimationActive={animate} />
         </BarChart>
       </ResponsiveContainer>
     </ChartCard>
@@ -85,11 +88,12 @@ export function PayerMixChart({
   title = 'Payer Mix',
   subtitle = 'Active panel distribution',
 }: PayerMixChartProps) {
+  const animate = !usePrefersReducedMotion();
   return (
     <ChartCard title={title} subtitle={subtitle} height={height}>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
-          <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={95} paddingAngle={2}>
+          <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={95} paddingAngle={2} isAnimationActive={animate}>
             {data.map((_, i) => (
               <Cell key={data[i].name} fill={chartSeries[i % chartSeries.length]} />
             ))}
@@ -108,6 +112,7 @@ export interface WaitTimeAreaChartProps {
 }
 
 export function WaitTimeAreaChart({ data = waitTimeTrendData, height = 280 }: WaitTimeAreaChartProps) {
+  const animate = !usePrefersReducedMotion();
   return (
     <ChartCard title="Average Wait Time" subtitle="Minutes by hour · today" height={height}>
       <ResponsiveContainer width="100%" height="100%">
@@ -116,7 +121,7 @@ export function WaitTimeAreaChart({ data = waitTimeTrendData, height = 280 }: Wa
           <XAxis dataKey="hour" {...chartDefaults.axis} />
           <YAxis {...chartDefaults.axis} />
           <Tooltip contentStyle={{ borderRadius: 8, border: `1px solid ${chartColors.grid}` }} />
-          <Area type="monotone" dataKey="minutes" name="Wait (min)" stroke={chartColors.accent} fill={chartColors.accent} fillOpacity={0.2} strokeWidth={2} />
+          <Area type="monotone" dataKey="minutes" name="Wait (min)" stroke={chartColors.accent} fill={chartColors.accent} fillOpacity={0.2} strokeWidth={2} isAnimationActive={animate} />
         </AreaChart>
       </ResponsiveContainer>
     </ChartCard>
@@ -136,6 +141,7 @@ export function RevenueTrendChart({
   title = 'Charges vs Collections',
   subtitle = 'Monthly RCM summary',
 }: RevenueTrendChartProps) {
+  const animate = !usePrefersReducedMotion();
   return (
     <ChartCard title={title} subtitle={subtitle} height={height}>
       <ResponsiveContainer width="100%" height="100%">
@@ -145,8 +151,8 @@ export function RevenueTrendChart({
           <YAxis {...chartDefaults.axis} tickFormatter={(v) => `$${v / 1000}k`} />
           <Tooltip formatter={(v) => [`$${Number(v).toLocaleString()}`, '']} contentStyle={{ borderRadius: 8, border: `1px solid ${chartColors.grid}` }} />
           <Legend />
-          <Line type="monotone" dataKey="charges" name="Charges" stroke={chartColors.info} strokeWidth={2} />
-          <Line type="monotone" dataKey="collections" name="Collections" stroke={chartColors.success} strokeWidth={2} />
+          <Line type="monotone" dataKey="charges" name="Charges" stroke={chartColors.info} strokeWidth={2} isAnimationActive={animate} />
+          <Line type="monotone" dataKey="collections" name="Collections" stroke={chartColors.success} strokeWidth={2} isAnimationActive={animate} />
         </LineChart>
       </ResponsiveContainer>
     </ChartCard>
@@ -166,6 +172,7 @@ export function StatusCountBarChart({
   title = 'Status Breakdown',
   subtitle = 'Count by category',
 }: StatusCountBarChartProps) {
+  const animate = !usePrefersReducedMotion();
   return (
     <ChartCard title={title} subtitle={subtitle} height={height}>
       <ResponsiveContainer width="100%" height="100%">
@@ -174,7 +181,7 @@ export function StatusCountBarChart({
           <XAxis dataKey="name" {...chartDefaults.axis} />
           <YAxis {...chartDefaults.axis} allowDecimals={false} />
           <Tooltip contentStyle={{ borderRadius: 8, border: `1px solid ${chartColors.grid}` }} />
-          <Bar dataKey="count" name="Count" fill={chartColors.primary} radius={[4, 4, 0, 0]} />
+          <Bar dataKey="count" name="Count" fill={chartColors.primary} radius={[4, 4, 0, 0]} isAnimationActive={animate} />
         </BarChart>
       </ResponsiveContainer>
     </ChartCard>
@@ -196,6 +203,7 @@ export function MetricBarChart({
   subtitle = 'Operational summary',
   valueFormatter = (v) => String(v),
 }: MetricBarChartProps) {
+  const animate = !usePrefersReducedMotion();
   return (
     <ChartCard title={title} subtitle={subtitle} height={height}>
       <ResponsiveContainer width="100%" height="100%">
@@ -204,7 +212,7 @@ export function MetricBarChart({
           <XAxis dataKey="name" {...chartDefaults.axis} />
           <YAxis {...chartDefaults.axis} tickFormatter={valueFormatter} />
           <Tooltip formatter={(v) => [valueFormatter(Number(v)), 'Value']} contentStyle={{ borderRadius: 8, border: `1px solid ${chartColors.grid}` }} />
-          <Bar dataKey="value" name="Value" fill={chartColors.info} radius={[4, 4, 0, 0]} />
+          <Bar dataKey="value" name="Value" fill={chartColors.info} radius={[4, 4, 0, 0]} isAnimationActive={animate} />
         </BarChart>
       </ResponsiveContainer>
     </ChartCard>
@@ -224,6 +232,7 @@ export function PaymentsBarChart({
   title = 'Payments by Payer',
   subtitle = 'Submitted claim amounts',
 }: PaymentsBarChartProps) {
+  const animate = !usePrefersReducedMotion();
   return (
     <ChartCard title={title} subtitle={subtitle} height={height}>
       <ResponsiveContainer width="100%" height="100%">
@@ -232,7 +241,7 @@ export function PaymentsBarChart({
           <XAxis dataKey="payer" {...chartDefaults.axis} />
           <YAxis {...chartDefaults.axis} tickFormatter={(v) => `$${Number(v).toLocaleString()}`} />
           <Tooltip formatter={(v) => [`$${Number(v).toLocaleString()}`, 'Amount']} contentStyle={{ borderRadius: 8, border: `1px solid ${chartColors.grid}` }} />
-          <Bar dataKey="amount" name="Amount" fill={chartColors.success} radius={[4, 4, 0, 0]} />
+          <Bar dataKey="amount" name="Amount" fill={chartColors.success} radius={[4, 4, 0, 0]} isAnimationActive={animate} />
         </BarChart>
       </ResponsiveContainer>
     </ChartCard>
