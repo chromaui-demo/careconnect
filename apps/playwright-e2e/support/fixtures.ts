@@ -9,10 +9,45 @@
  * API-only tests and the auth setup import from @playwright/test directly:
  * the Chromatic fixture always opens a page, which they don't need.
  */
-import type { Page } from '@playwright/test';
-import { expect } from '@chromatic-com/playwright';
+import type { Page, TestInfo } from '@playwright/test';
+import { test as chromaticTest, expect, takeSnapshot as chromaticTakeSnapshot } from '@chromatic-com/playwright';
 
-export { test, expect, takeSnapshot } from '@chromatic-com/playwright';
+export { expect };
+
+/**
+ * Waits until the page has no requests in flight. Both apps fill parts of a
+ * page after it first renders — the portal's unread-message badge, the
+ * tracking board's filters — and a snapshot taken before that lands differs
+ * from one taken after, which production's visual review would then flag
+ * with no UI change behind it. Neither app polls, so the network does go
+ * quiet; if it doesn't in time, the test notes it and the snapshot is taken
+ * anyway rather than failing the test.
+ */
+async function settle(page: Page, testInfo: TestInfo) {
+  if (page.isClosed()) return;
+  try {
+    await page.waitForLoadState('networkidle', { timeout: 10_000 });
+  } catch {
+    testInfo.annotations.push({ type: 'warning', description: 'Network still busy when the Chromatic snapshot was taken.' });
+  }
+}
+
+export const test = chromaticTest.extend<{ settleBeforeSnapshot: void }>({
+  // Depends on Chromatic's automatic snapshot fixture, so it is set up after
+  // it and torn down before it: the wait runs once the test body is done and
+  // before the end-of-test snapshot is captured.
+  settleBeforeSnapshot: [async ({ page, chromaticSnapshot }, use, testInfo) => {
+    void chromaticSnapshot;
+    await use();
+    await settle(page, testInfo);
+  }, { auto: true }],
+});
+
+/** Chromatic's takeSnapshot for a mid-test capture, after the page settles. */
+export async function takeSnapshot(page: Page, name: string, testInfo: TestInfo) {
+  await settle(page, testInfo);
+  await chromaticTakeSnapshot(page, name, testInfo);
+}
 
 /** Fills and submits the design system's LoginScreen, shared by both apps. */
 export async function signIn(page: Page, email: string, password: string) {
