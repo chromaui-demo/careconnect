@@ -4,10 +4,14 @@ import { LoginScreen, PageLoading, DESIGN_SYSTEM_VERSION } from '@careconnect/de
 import { useAuth } from '../context/AuthContext';
 import { version as portalVersion } from '../../package.json';
 
+// Seeded demo account, prefilled in every build so the team only needs the password.
+// The password stays dev-only: deployed environments set their own SEEDED_PASSWORD.
+const DEMO_EMAIL = 'alice.smith@se-tools.net';
+
 export function LoginPage() {
   const { login, user } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState(import.meta.env.DEV ? 'alice.smith@se-tools.net' : '');
+  const [email, setEmail] = useState(DEMO_EMAIL);
   const [password, setPassword] = useState(import.meta.env.DEV ? 'CareConnect1!' : '');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -50,8 +54,8 @@ export function LoginPage() {
       onSubmit={handleSubmit}
       error={error}
       loading={loading}
-      emailPlaceholder="patient@careconnect.demo"
-      demoHint={import.meta.env.DEV ? 'alice.smith@se-tools.net / CareConnect1!' : undefined}
+      emailPlaceholder={DEMO_EMAIL}
+      demoHint={import.meta.env.DEV ? `${DEMO_EMAIL} / CareConnect1!` : DEMO_EMAIL}
       footerNote="Demo environment — se-tools.net"
       appVersion={portalVersion}
       designSystemVersion={DESIGN_SYSTEM_VERSION}

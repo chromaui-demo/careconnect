@@ -8,7 +8,12 @@ export function BillingPatientsPage() {
   const [patients, setPatients] = useState<BillingPatient[]>([]);
   const [search, setSearch] = useState('');
 
-  useEffect(() => { api.billing.getPatients(search || undefined).then(setPatients); }, [search]);
+  useEffect(() => {
+    // Ignore responses for a search the user has already typed past.
+    let current = true;
+    api.billing.getPatients(search || undefined).then((rows) => { if (current) setPatients(rows); });
+    return () => { current = false; };
+  }, [search]);
 
   return (
     <PageContainer title="Billing Patients">

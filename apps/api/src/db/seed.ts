@@ -4,7 +4,7 @@ import { DEFAULT_QUESTIONNAIRES } from '@careconnect/types';
 import { initDb } from './schema.js';
 import { execute, queryCount, queryOne, queryAll } from './helpers.js';
 import { seedParityDefaults } from './parity-migrate.js';
-import { ensureDemoPatientWorkflows } from './demo-patient-data.js';
+import { SEEDED_PATIENT_COUNT, ensureDemoPatientWorkflows } from './demo-patient-data.js';
 import { seededPassword } from './seeded-password.js';
 
 export function seedDatabase() {
@@ -58,7 +58,7 @@ export function seedDatabase() {
   const FIRST = ['Alice', 'Bob', 'Charlie', 'Diana', 'Ethan', 'Fiona'];
   const LAST = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia'];
 
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < SEEDED_PATIENT_COUNT; i++) {
     const year = 1960 + (i * 7) % 40;
     const first = FIRST[i % 6];
     const last = LAST[i % 6];

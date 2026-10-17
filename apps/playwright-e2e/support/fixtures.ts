@@ -10,12 +10,23 @@
  * the Chromatic fixture always opens a page, which they don't need.
  */
 import type { Page } from '@playwright/test';
+import { expect } from '@chromatic-com/playwright';
 
 export { test, expect, takeSnapshot } from '@chromatic-com/playwright';
 
 /** Fills and submits the design system's LoginScreen, shared by both apps. */
 export async function signIn(page: Page, email: string, password: string) {
   await page.getByLabel('Email address').fill(email);
+  await page.getByLabel('Password', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Sign In' }).click();
+}
+
+/**
+ * Signs in the way the team does: checks the email field already holds the
+ * seeded account, types only the password, and submits.
+ */
+export async function signInWithPrefilledEmail(page: Page, expectedEmail: string, password: string) {
+  await expect(page.getByLabel('Email address')).toHaveValue(expectedEmail);
   await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Sign In' }).click();
 }

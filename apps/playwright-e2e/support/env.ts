@@ -29,6 +29,38 @@ export const USERS = {
 
 export type Role = keyof typeof USERS;
 
+/**
+ * The account each app's login form arrives prefilled with, in every build
+ * (apps/ehr and apps/portal LoginPage.tsx), so people only type the password.
+ */
+export const PREFILLED_USER = {
+  ehr: USERS.admin,
+  portal: USERS.patient,
+} as const;
+
+/**
+ * The patient the Portal workflow tests sign in as and save data for. Not the
+ * prefilled demo patient: the read-only tests snapshot that patient's pages,
+ * and a payment or booking made every run would change them every run.
+ */
+export const WORKFLOW_PATIENT = {
+  email: 'bob.johnson@se-tools.net',
+  firstName: 'Bob',
+  lastName: 'Johnson',
+  dateOfBirth: '1967-02-02',
+  phone: '(555) 101-1011',
+} as const;
+
+/**
+ * A short tag unique to one test run, for the data the workflow tests create
+ * ("E2E-lx3k9a2f"). Staging is never reset and several deploys can run the
+ * suite at once, so each flow finds its own records by this tag, never by
+ * position or count.
+ */
+export function uniqueTag(): string {
+  return `E2E-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+}
+
 /** Signed-in browser state written by tests/auth.setup.ts, one file per role. */
 export const authFile = (role: Role) => `.auth/${role}.json`;
 
