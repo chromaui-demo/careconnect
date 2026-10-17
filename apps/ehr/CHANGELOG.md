@@ -1,5 +1,12 @@
 # @careconnect/ehr
 
+## 1.0.12
+
+### Patch Changes
+
+- 26e6434: Patient search (Patients, Billing › Patients and the patient picker) no longer shows an older, unfiltered list when a slow earlier response arrives after the current search's results.
+- 26e6434: Prefill the seeded demo account's email on the sign-in screen in every environment, so the team only enters the password. The password is still prefilled in local development only.
+
 ## 1.0.11
 
 ### Patch Changes

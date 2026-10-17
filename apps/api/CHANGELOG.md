@@ -1,5 +1,13 @@
 # @careconnect/api
 
+## 1.1.1
+
+### Patch Changes
+
+- 26e6434: Requests that leave optional fields out no longer fail with a server error. Registering a walk-in from the EHR (which sends no phone or email) and saving any section of an encounter chart both failed before.
+- 26e6434: Patients and clinical staff can read the list of services again. Booking from the portal home page showed no services to choose from, and the EHR tracking board's service filter was empty for Staff and Provider users.
+- 26e6434: Patients registered after the initial seed no longer gain invented demo visits, claims, labs and messages when the API restarts. Demo history is now limited to the seeded demo patients.
+
 ## 1.1.0
 
 ### Minor Changes

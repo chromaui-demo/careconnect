@@ -1,5 +1,11 @@
 # @careconnect/portal
 
+## 1.0.11
+
+### Patch Changes
+
+- 26e6434: Prefill the seeded demo account's email on the sign-in screen in every environment, so the team only enters the password. The password is still prefilled in local development only.
+
 ## 1.0.10
 
 ### Patch Changes
