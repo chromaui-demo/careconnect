@@ -27,6 +27,25 @@ type Story = StoryObj;
 export const VitalsTrend: Story = { render: () => <VitalsTrendChart /> };
 export const AppointmentsByDay: Story = { render: () => <AppointmentsBarChart /> };
 export const PayerMix: Story = { render: () => <PayerMixChart /> };
+
+/** The billing Claims page's card: narrow and short, with a legend that wraps. */
+export const PayerMixNarrowCard: Story = {
+  name: 'Payer mix in a narrow card',
+  render: () => (
+    <div style={{ width: 340 }}>
+      <PayerMixChart
+        title="Payer mix"
+        height={220}
+        data={[
+          { name: 'Aetna', value: 1360 },
+          { name: 'Blue Cross Blue Shield', value: 1750 },
+          { name: 'Cigna', value: 1140 },
+          { name: 'UnitedHealthcare', value: 860 },
+        ]}
+      />
+    </div>
+  ),
+};
 export const WaitTimeTrend: Story = { render: () => <WaitTimeAreaChart /> };
 export const RevenueTrend: Story = { render: () => <RevenueTrendChart /> };
 

@@ -1,6 +1,7 @@
 import { test, expect, signIn, signInWithPrefilledEmail } from '../../support/fixtures';
 import { DEPLOYED, PASSWORD, PREFILLED_USER, USERS, authFile } from '../../support/env';
 import { REQUIRES, deployedVersionLine, skipUnlessServing } from '../../support/version';
+import { expectTrackingBoardReady } from '../../support/pages';
 
 // These start signed out: they exercise the login form and the route guard.
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -12,7 +13,7 @@ test('staff can sign in to the EHR', { tag: '@smoke' }, async ({ page }) => {
   // A positive check that the signed-in chrome rendered: the URL alone would
   // also match a route that crashed to a blank page.
   await expect(page.getByRole('button', { name: 'Tracking Board' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Tracking Board' })).toBeVisible();
+  await expectTrackingBoardReady(page);
 });
 
 test.describe('prefilled account', () => {

@@ -87,6 +87,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           SHA: ${{ needs.staging.outputs.chromatic-sha }}
           BUILD_URL: ${{ needs.staging.outputs.chromatic-build-url }}
+          ALREADY_ACCEPTED: ${{ needs.staging.outputs.chromatic-already-accepted }}
         run: bash scripts/wait-for-chromatic-review.sh "$SHA" "$BUILD_URL" 60
 
   production:

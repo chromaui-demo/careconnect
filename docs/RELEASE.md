@@ -113,11 +113,14 @@ Only packages with changes receive a new version, tag, release, and deploy. A po
    - **No decision within an hour:** the job fails, and staging stays a release ahead. Review the build, then **Re-run failed jobs** on the deploy run to continue to production.
 4. **Production.** The same steps with the production config, followed by only the read-only `@smoke` tests, with the same rollback on failure.
 
-**Why visual changes gate production.** Pull requests review components in Storybook. The staging snapshots are the assembled app with real data, which is where an integration regression shows. Staging builds go to a `staging` branch in the end-to-end Chromatic project and are not auto-accepted. A build compares against the last accepted staging build, so a change stays visible until someone decides on it.
+**Why visual changes gate production.** Pull requests review components in Storybook. The staging snapshots are the assembled app with real data, which is where an integration regression shows. Staging builds go to one branch per unit in the end-to-end Chromatic project (`staging-api`, `staging-ehr`, `staging-portal`) and are not auto-accepted. A build compares against that unit's last accepted staging build, so a change stays visible until someone decides on it.
 
-- **Several units at once:** each unit deployed from the same release has its own build, and each is reviewed on its own.
+- **Why one branch per unit:** Chromatic supersedes a build when a newer one arrives on its branch, and a superseded build can no longer be reviewed. With a shared branch, a second unit's deploy would strand the first unit's Visual review on a build nobody can accept. A unit's own deploys run one at a time, so its builds never overlap.
+
+- **Several units at once:** each unit deployed from the same release has its own build on its own branch, and each is reviewed on its own. A change that shows on every page (a design-system release, for example) appears in each unit's next build and is accepted in each.
 - **Data changes:** people using the shared demo accounts on staging can change a page without any UI change. Accept those like any other change.
 - **Chromatic outages:** an outage, or a failed upload, holds the release rather than letting it through unreviewed. Re-run the deploy once Chromatic is back.
+- **Re-running a deploy:** when the unit's last staging build is for the same commit and already accepted, Chromatic skips the upload as a rebuild, and Visual review passes without a new build.
 
 There is no production-only deploy. Every production deploy follows a green staging run of the same ref, because the repository is private and GitHub's plan for it does not offer required reviewers to stand in for the gate.
 

@@ -36,6 +36,9 @@ on:
       chromatic-sha:
         description: The commit that build was reported against
         value: ${{ jobs.deploy.outputs.chromatic-sha }}
+      chromatic-already-accepted:
+        description: "'true' when Chromatic skipped the upload because this commit's last build on the branch was already accepted"
+        value: ${{ jobs.deploy.outputs.chromatic-already-accepted }}
 
 jobs:
   deploy:
@@ -57,6 +60,7 @@ jobs:
     outputs:
       chromatic-build-url: ${{ steps.chromatic.outputs.build-url }}
       chromatic-sha: ${{ steps.chromatic.outputs.sha }}
+      chromatic-already-accepted: ${{ steps.chromatic.outputs.already-accepted }}
     env:
       DEPLOY_CONFIG_FILE: ${{ github.workspace }}/../careconnect-${{ inputs.environment }}.env
       SSH_KEY: ${{ github.workspace }}/../deploy_key
@@ -205,7 +209,7 @@ jobs:
       # The CLI rather than chromaui/action: this run is a workflow_dispatch
       # from main that checks out a tag, and the action would report the build
       # against main's head (GITHUB_SHA). CHROMATIC_SHA/BRANCH pin it to the
-      # commit actually deployed, on a "staging" branch in Chromatic.
+      # commit actually deployed, on a "staging-<unit>" branch in Chromatic.
       - name: Publish end-to-end snapshots to Chromatic
         id: chromatic
         if: always() && inputs.suite == 'full' && steps.e2e.outcome != 'skipped'
@@ -213,7 +217,12 @@ jobs:
         working-directory: ${{ steps.suite.outputs.dir }}
         env:
           CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PLAYWRIGHT_PROJECT_TOKEN }}
-          CHROMATIC_BRANCH: ${{ inputs.environment }}
+          # One Chromatic branch per unit (staging-ehr, …). Chromatic supersedes
+          # a build when a newer one lands on its branch, and a superseded build
+          # can no longer be reviewed, so deploys of different units sharing a
+          # branch would leave an earlier deploy's visual-review job waiting on a
+          # build nobody can accept. A unit's deploys run one at a time.
+          CHROMATIC_BRANCH: ${{ inputs.environment }}-${{ inputs.unit }}
         run: |
           if [ -z "$CHROMATIC_PROJECT_TOKEN" ]; then
             echo "::notice::CHROMATIC_PLAYWRIGHT_PROJECT_TOKEN is not set — skipping the Chromatic upload."
@@ -228,6 +237,12 @@ jobs:
           npm run chromatic -- --exit-zero-on-changes | tee "$RUNNER_TEMP/chromatic.log" || status=$?
           build_url=$(grep -o 'https://www.chromatic.com/build?appId=[A-Za-z0-9]*&number=[0-9]*' "$RUNNER_TEMP/chromatic.log" | tail -1 || true)
           echo "build-url=$build_url" >> "$GITHUB_OUTPUT"
+          # Re-running a deploy of the same commit: Chromatic skips the upload
+          # when the branch's last build is that commit and already accepted.
+          # Nothing new to review, so the visual-review job lets it through.
+          if grep -q 'Skipping rebuild of an already fully passed/accepted build' "$RUNNER_TEMP/chromatic.log"; then
+            echo "already-accepted=true" >> "$GITHUB_OUTPUT"
+          fi
           exit "$status"
 
       # Only roll back what this run deployed: a test failure after a
