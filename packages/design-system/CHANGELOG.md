@@ -1,5 +1,11 @@
 # @careconnect/design-system
 
+## 1.1.2
+
+### Patch Changes
+
+- 7839330: Charts draw straight to their final state when the user prefers reduced motion. Recharts and ECharts animated in JavaScript regardless of the OS setting, which the global reduced-motion CSS rule could not stop.
+
 ## 1.1.1
 
 ### Patch Changes
