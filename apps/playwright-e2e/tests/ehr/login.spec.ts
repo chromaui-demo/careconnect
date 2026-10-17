@@ -1,20 +1,32 @@
 import { test, expect, signIn, signInWithPrefilledEmail } from '../../support/fixtures';
 import { DEPLOYED, PASSWORD, PREFILLED_USER, USERS, authFile } from '../../support/env';
-import { deployedVersionLine } from '../../support/version';
+import { REQUIRES, deployedVersionLine, skipUnlessServing } from '../../support/version';
 
 // These start signed out: they exercise the login form and the route guard.
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test('staff sign in to the EHR with the prefilled account and only the password', { tag: '@smoke' }, async ({ page }) => {
+test('staff can sign in to the EHR', { tag: '@smoke' }, async ({ page }) => {
   await page.goto('/login');
-  await expect(page.getByLabel('Email address')).toHaveAttribute('placeholder', PREFILLED_USER.ehr);
-  await expect(page.getByText(`Demo: ${PREFILLED_USER.ehr}`)).toBeVisible();
-  await signInWithPrefilledEmail(page, PREFILLED_USER.ehr, PASSWORD);
+  await signIn(page, USERS.admin, PASSWORD);
   await expect(page).toHaveURL(/\/visits$/);
   // A positive check that the signed-in chrome rendered: the URL alone would
   // also match a route that crashed to a blank page.
   await expect(page.getByRole('button', { name: 'Tracking Board' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Tracking Board' })).toBeVisible();
+});
+
+test.describe('prefilled account', () => {
+  // Ends signed in on the tracking board, which the test above captures.
+  test.use({ disableAutoSnapshot: true });
+
+  test('the form arrives prefilled, so staff type only the password', { tag: '@smoke' }, async ({ page, browser }) => {
+    await skipUnlessServing(browser, REQUIRES.prefilledEhrLogin);
+    await page.goto('/login');
+    await expect(page.getByLabel('Email address')).toHaveAttribute('placeholder', PREFILLED_USER.ehr);
+    await expect(page.getByText(`Demo: ${PREFILLED_USER.ehr}`)).toBeVisible();
+    await signInWithPrefilledEmail(page, PREFILLED_USER.ehr, PASSWORD);
+    await expect(page.getByRole('heading', { name: 'Tracking Board' })).toBeVisible();
+  });
 });
 
 test('a wrong password is rejected with an error', async ({ page }) => {

@@ -1,19 +1,31 @@
 import { test, expect, signIn, signInWithPrefilledEmail } from '../../support/fixtures';
 import { DEPLOYED, PASSWORD, PREFILLED_USER, USERS } from '../../support/env';
-import { deployedVersionLine } from '../../support/version';
+import { REQUIRES, deployedVersionLine, skipUnlessServing } from '../../support/version';
 
 // These start signed out: they exercise the login form and the route guard.
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test('a patient signs in to the Portal with the prefilled account and only the password', { tag: '@smoke' }, async ({ page, baseURL }) => {
+test('a patient can sign in to the Portal', { tag: '@smoke' }, async ({ page, baseURL }) => {
   await page.goto('/login');
-  await expect(page.getByLabel('Email address')).toHaveAttribute('placeholder', PREFILLED_USER.portal);
-  await expect(page.getByText(`Demo: ${PREFILLED_USER.portal}`)).toBeVisible();
-  await signInWithPrefilledEmail(page, PREFILLED_USER.portal, PASSWORD);
+  await signIn(page, USERS.patient, PASSWORD);
   await expect(page).toHaveURL(new URL('/', baseURL).toString());
   // A positive check that the home page rendered: the URL alone would also
   // match a route that crashed to a blank page.
   await expect(page.getByRole('heading', { name: 'Welcome to CareConnect' })).toBeVisible();
+});
+
+test.describe('prefilled account', () => {
+  // Ends signed in on the home page, which the test above captures.
+  test.use({ disableAutoSnapshot: true });
+
+  test('the form arrives prefilled, so patients type only the password', { tag: '@smoke' }, async ({ page, browser }) => {
+    await skipUnlessServing(browser, REQUIRES.prefilledPortalLogin);
+    await page.goto('/login');
+    await expect(page.getByLabel('Email address')).toHaveAttribute('placeholder', PREFILLED_USER.portal);
+    await expect(page.getByText(`Demo: ${PREFILLED_USER.portal}`)).toBeVisible();
+    await signInWithPrefilledEmail(page, PREFILLED_USER.portal, PASSWORD);
+    await expect(page.getByRole('heading', { name: 'Welcome to CareConnect' })).toBeVisible();
+  });
 });
 
 test('a wrong password is rejected with an error', async ({ page }) => {
