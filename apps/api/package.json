@@ -13,7 +13,7 @@
     "db:migrate": "tsx src/db/run-migrations.ts",
     "db:backup": "tsx src/db/backup-cli.ts",
     "db:rotate-password": "tsx src/db/rotate-password.ts",
-    "test": "node --import tsx --test src/db/migrator.test.ts src/db/run-migrations.test.ts src/db/migrations.test.ts src/db/backup.test.ts src/db/seeded-password.test.ts"
+    "test": "node --import tsx --test src/db/migrator.test.ts src/db/run-migrations.test.ts src/db/migrations.test.ts src/db/backup.test.ts src/db/seeded-password.test.ts src/db/helpers.test.ts"
   },
   "dependencies": {
     "@careconnect/types": "*",
