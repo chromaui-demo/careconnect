@@ -1,5 +1,12 @@
 # @careconnect/ehr
 
+## 1.0.13
+
+### Patch Changes
+
+- Updated dependencies [7839330]
+  - @careconnect/design-system@1.1.2
+
 ## 1.0.12
 
 ### Patch Changes
