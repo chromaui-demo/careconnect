@@ -9,11 +9,13 @@ name: Deploy
 #
 # Flow: build the unit's artifact with the staging config → ship it with
 # deploy/remote-deploy.sh → run the full Playwright end-to-end suite against
-# staging. That suite is the production gate: when it passes, production
-# deploys automatically (same steps, @smoke tests only); when it fails, staging
-# is rolled back, production is never touched, and the run stays red until
-# someone acts on it — fix and release again, or re-run. Production is never
-# deployed without a green staging run: there is no production-only option.
+# staging. Two things gate production: that suite must pass, and every visual
+# change its snapshots show in Chromatic must be accepted (visual-review).
+# When both hold, production deploys automatically (same steps, @smoke tests
+# only). When the suite fails, staging is rolled back, production is never
+# touched, and the run stays red until someone acts on it — fix and release
+# again, or re-run. Production is never deployed without a green, reviewed
+# staging run: there is no production-only option.
 #
 # Per-environment configuration lives in GitHub Environments "staging" and
 # "production" (see docs/RELEASE.md § One-time setup):
@@ -61,10 +63,37 @@ jobs:
       suite: full
     secrets: inherit
 
-  production:
+  # Hold production until the staging snapshots are reviewed in Chromatic.
+  # Waits on a GitHub-hosted runner, so the self-hosted deploy runner stays
+  # free. Unchanged or accepted → production deploys. Denied or broken → the
+  # release stops. No decision in time → this job fails; review the build,
+  # then "Re-run failed jobs" to continue to production.
+  visual-review:
+    name: Visual review
     needs: staging
-    # Promote automatically when the staging gate passed. A failed or cancelled
-    # staging run never reaches production.
+    if: inputs.environments == 'staging+production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    permissions:
+      contents: read
+      statuses: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: scripts
+      - name: Wait for the staging snapshots to be accepted in Chromatic
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SHA: ${{ needs.staging.outputs.chromatic-sha }}
+          BUILD_URL: ${{ needs.staging.outputs.chromatic-build-url }}
+        run: bash scripts/wait-for-chromatic-review.sh "$SHA" "$BUILD_URL" 60
+
+  production:
+    needs: [staging, visual-review]
+    # Promote automatically when the staging suite passed and its visual
+    # changes were accepted. A failed or cancelled staging run, or an
+    # unreviewed or denied visual change, never reaches production.
     if: inputs.environments == 'staging+production'
     uses: ./.github/workflows/deploy-environment.yml
     with:
