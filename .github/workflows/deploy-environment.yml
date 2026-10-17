@@ -29,6 +29,13 @@ on:
         description: 'End-to-end tests to run after deploying: full (the staging gate) or smoke'
         type: string
         required: true
+    outputs:
+      chromatic-build-url:
+        description: The Chromatic build of this run's end-to-end snapshots (full suite only; empty if the upload failed)
+        value: ${{ jobs.deploy.outputs.chromatic-build-url }}
+      chromatic-sha:
+        description: The commit that build was reported against
+        value: ${{ jobs.deploy.outputs.chromatic-sha }}
 
 jobs:
   deploy:
@@ -47,6 +54,9 @@ jobs:
       url: ${{ inputs.unit == 'portal' && vars.PORTAL_URL || vars.EHR_URL }}
     permissions:
       contents: read
+    outputs:
+      chromatic-build-url: ${{ steps.chromatic.outputs.build-url }}
+      chromatic-sha: ${{ steps.chromatic.outputs.sha }}
     env:
       DEPLOY_CONFIG_FILE: ${{ github.workspace }}/../careconnect-${{ inputs.environment }}.env
       SSH_KEY: ${{ github.workspace }}/../deploy_key
@@ -186,16 +196,18 @@ jobs:
 
       # Visual review of the staging run, in its own Chromatic project. Runs
       # whether the tests passed or failed: a failed test's snapshot shows what
-      # the page looked like. Visual changes do not block production — a
-      # release's UI changes were reviewed on its PRs — so builds auto-accept
-      # and each deploy is compared with the previous one. continue-on-error:
-      # a Chromatic outage must not hold or roll back a release.
+      # the page looked like. Changes are not auto-accepted: deploy.yml's
+      # visual-review job holds production until someone accepts them in
+      # Chromatic, so a regression in the assembled app cannot ship unseen.
+      # continue-on-error: a failed upload must not roll back staging; it
+      # leaves no build URL, and the visual-review job then holds production.
       #
       # The CLI rather than chromaui/action: this run is a workflow_dispatch
       # from main that checks out a tag, and the action would report the build
       # against main's head (GITHUB_SHA). CHROMATIC_SHA/BRANCH pin it to the
       # commit actually deployed, on a "staging" branch in Chromatic.
       - name: Publish end-to-end snapshots to Chromatic
+        id: chromatic
         if: always() && inputs.suite == 'full' && steps.e2e.outcome != 'skipped'
         continue-on-error: true
         working-directory: ${{ steps.suite.outputs.dir }}
@@ -208,7 +220,15 @@ jobs:
             exit 0
           fi
           export CHROMATIC_SHA="$(git -C "$GITHUB_WORKSPACE" rev-parse HEAD)"
-          npm run chromatic -- --exit-zero-on-changes --auto-accept-changes
+          echo "sha=$CHROMATIC_SHA" >> "$GITHUB_OUTPUT"
+          # Record the build's link even if the CLI fails after creating it, so
+          # the visual-review job reports Chromatic's own verdict.
+          set -o pipefail
+          status=0
+          npm run chromatic -- --exit-zero-on-changes | tee "$RUNNER_TEMP/chromatic.log" || status=$?
+          build_url=$(grep -o 'https://www.chromatic.com/build?appId=[A-Za-z0-9]*&number=[0-9]*' "$RUNNER_TEMP/chromatic.log" | tail -1 || true)
+          echo "build-url=$build_url" >> "$GITHUB_OUTPUT"
+          exit "$status"
 
       # Only roll back what this run deployed: a test failure after a
       # successful deploy. A failed deploy already left the VM on the previous

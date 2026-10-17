@@ -106,10 +106,18 @@ Only packages with changes receive a new version, tag, release, and deploy. A po
 [`deploy.yml`](../.github/workflows/deploy.yml) runs once per unit and ref (for example, `Deploy portal @ @careconnect/portal@1.3.0`), so the Actions history doubles as a per-team deploy log. It calls [`deploy-environment.yml`](../.github/workflows/deploy-environment.yml) for each environment in turn:
 
 1. **Staging.** Check out the tag, build that unit's artifact with the staging config (`deploy/package-artifact.sh --unit <unit>`), upload it as `careconnect-<unit>-staging`, ship it with `deploy/remote-deploy.sh`, and run the full Playwright end-to-end suite ([`apps/playwright-e2e`](../apps/playwright-e2e/README.md)) against staging. The suite runs from the deployed ref, so the tests match the build; a ref older than the suite (an earlier tag being redeployed) uses the suite from `main` instead. The suite's browser snapshots go to Chromatic for visual review.
-2. **The gate.** If the suite passes, production deploys automatically; nobody needs to approve it. If any test fails (after one retry), that unit is rolled back on staging, production is never touched, and the run ends red with a summary of what to do next. Someone has to act: fix the regression and release again, or re-run the workflow if the failure was environmental.
-3. **Production.** The same steps with the production config, followed by only the read-only `@smoke` tests, with the same rollback on failure.
+2. **The gate.** If any test fails (after one retry), that unit is rolled back on staging, production is never touched, and the run ends red with a summary of what to do next. Someone has to act: fix the regression and release again, or re-run the workflow if the failure was environmental.
+3. **Visual review.** If the suite passes, the **Visual review** job holds production until every visual change in the staging run's Chromatic build has been accepted. It polls the build's **UI Tests** commit status ([`scripts/wait-for-chromatic-review.sh`](../scripts/wait-for-chromatic-review.sh)) on a GitHub-hosted runner, so the self-hosted deploy runner stays free.
+   - **Unchanged or accepted:** production deploys at once.
+   - **Denied, or the build broke:** the release stops.
+   - **No decision within an hour:** the job fails, and staging stays a release ahead. Review the build, then **Re-run failed jobs** on the deploy run to continue to production.
+4. **Production.** The same steps with the production config, followed by only the read-only `@smoke` tests, with the same rollback on failure.
 
-Visual changes in Chromatic do not block the gate: a release's UI changes were already reviewed on its pull requests, and a visual diff is not a failure. Each staging build is auto-accepted on a `staging` branch in the end-to-end Chromatic project, so the next deploy is compared with this one and every deploy's visual changes stay reviewable there. A Chromatic outage never holds a release.
+**Why visual changes gate production.** Pull requests review components in Storybook. The staging snapshots are the assembled app with real data, which is where an integration regression shows. Staging builds go to a `staging` branch in the end-to-end Chromatic project and are not auto-accepted. A build compares against the last accepted staging build, so a change stays visible until someone decides on it.
+
+- **Several units at once:** each unit deployed from the same release has its own build, and each is reviewed on its own.
+- **Data changes:** people using the shared demo accounts on staging can change a page without any UI change. Accept those like any other change.
+- **Chromatic outages:** an outage, or a failed upload, holds the release rather than letting it through unreviewed. Re-run the deploy once Chromatic is back.
 
 There is no production-only deploy. Every production deploy follows a green staging run of the same ref, because the repository is private and GitHub's plan for it does not offer required reviewers to stand in for the gate.
 
@@ -253,6 +261,7 @@ Scope by unit where it helps: `fix(portal): …`, `feat(api): …`.
 | [`scripts/release-units.mjs`](../scripts/release-units.mjs) | The release units with their teams and kinds; used by the release tooling |
 | [`scripts/github-releases.mjs`](../scripts/github-releases.mjs) | Creates a GitHub Release for each tagged release unit from its CHANGELOG section; idempotent |
 | [`scripts/release-publish.sh`](../scripts/release-publish.sh) | Manual fallback: tag, push tags, and create releases |
+| [`scripts/wait-for-chromatic-review.sh`](../scripts/wait-for-chromatic-review.sh) | Holds a deploy until the staging run's Chromatic build is reviewed; used by `deploy.yml`'s Visual review job |
 | [`.github/CODEOWNERS`](../.github/CODEOWNERS) | Review ownership per unit and shared package |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | One typecheck, test, and build job per unit, `--affected` on PRs, plus the aggregate required check |
 | [`.github/workflows/release.yml`](../.github/workflows/release.yml) | Version Packages PR, then tags, GitHub Releases, and deploy dispatch |

@@ -159,7 +159,7 @@ Chromatic keeps each test framework's builds in a separate project, so the repos
 | **Storybook** | `CHROMATIC_PROJECT_TOKEN` | [`chromatic.yml`](../.github/workflows/chromatic.yml) (`visual-review`) | Web design-system Storybook | Every PR, push to `main`, merge queue | Auto-accepted on `main` |
 | **Vitest** | `CHROMATIC_VITEST_PROJECT_TOKEN` | [`chromatic.yml`](../.github/workflows/chromatic.yml) (`vitest-visual`) | `*.visual.test.tsx` DOM archives | Every PR, push to `main`, merge queue | Auto-accepted on `main` |
 | **React Native** | `CHROMATIC_NATIVE_PROJECT_TOKEN` | [`chromatic-native.yml`](../.github/workflows/chromatic-native.yml) | `portal-mobile` Storybook, Android build | Every PR, push to `main`, merge queue; build skipped unless the mobile app is affected | Auto-accepted on `main` |
-| **Playwright** | `CHROMATIC_PLAYWRIGHT_PROJECT_TOKEN` | [`deploy-environment.yml`](../.github/workflows/deploy-environment.yml) | End-to-end test pages from staging | Every staging deploy | Auto-accepted on a `staging` branch; never blocks a deploy |
+| **Playwright** | `CHROMATIC_PLAYWRIGHT_PROJECT_TOKEN` | [`deploy-environment.yml`](../.github/workflows/deploy-environment.yml) | End-to-end test pages from staging | Every staging deploy | On a `staging` branch, never auto-accepted; production deploys only once its changes are accepted |
 
 **Cost control.** The Storybook and Vitest jobs use TurboSnap (`onlyChanged: true`), so a PR snapshots only the stories and tests its changes reach; a change to global styles or the visual-test setup file forces a full run. Chromatic has no TurboSnap for React Native, so `chromatic-native.yml` instead asks `turbo ls --affected` whether the mobile app or anything it depends on changed, and skips the build when not. A PR that changes only Markdown or files under `docs/` builds nothing: [`scripts/docs-only-change.sh`](../scripts/docs-only-change.sh) detects it, both jobs skip their build, and Chromatic marks the commit as passing without snapshots. iOS is not captured, because it needs a macOS runner billed at about ten times the Linux rate.
 
@@ -180,7 +180,7 @@ Each job skips until its token is set. Setup for the tokens is in [docs/RELEASE.
 | Pull request | `ci.yml`: one job per release unit runs `typecheck`, `test`, `test:stories`, `test:visual` and `build`, limited by `turbo --affected` to what the PR touches; a documentation-only PR skips them all. `chromatic.yml` (Storybook and Vitest projects) and `chromatic-native.yml` (React Native project, when affected). |
 | Merge queue | The same as a pull request. |
 | Push to `main` | `ci.yml` runs every unit in full. The Chromatic workflows run and auto-accept, setting the baseline for later PRs. |
-| Deploy to staging | The full Playwright suite against staging, uploaded to the Playwright Chromatic project. A failure rolls staging back and stops the release. |
+| Deploy to staging | The full Playwright suite against staging, uploaded to the Playwright Chromatic project. A failure rolls staging back and stops the release. If it passes, production waits until the build's visual changes are accepted in Chromatic. |
 | Deploy to production | The `@smoke` Playwright tests against production. A failure rolls production back. |
 
 The branch-protection gate is the aggregate **All units passed** check from `ci.yml`. The `design-system` job uploads its JUnit results (`junit.xml`, `junit-stories.xml`, `junit-visual.xml`) as the `junit-design-system` artifact.
