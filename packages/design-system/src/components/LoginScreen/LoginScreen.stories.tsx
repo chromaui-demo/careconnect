@@ -3,12 +3,13 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { expect } from 'storybook/test';
 import { LoginScreen } from './LoginScreen';
-import { DESIGN_SYSTEM_VERSION } from '../..';
 import { figmaDesign } from '../../figma/links';
-// The Portal and EHR stories show the same app versions the deployed apps do.
-import { version as portalVersion } from '../../../../../apps/portal/package.json';
-import { version as ehrVersion } from '../../../../../apps/ehr/package.json';
 import { allModes } from '../../../.storybook/modes';
+
+// Fixed versions, not the live package.json ones: a release bumps those, and
+// every snapshot of the version line would change with no change to the UI.
+const APP_VERSION = '1.4.0';
+const DESIGN_SYSTEM_VERSION = '2.1.0';
 
 const meta: Meta<typeof LoginScreen> = {
   title: 'Components/LoginScreen',
@@ -82,7 +83,7 @@ export const Portal: Story = {
       email="demo.user@example.com"
       formSubtitle="Patient Portal"
       demoHint="demo.user@example.com / SampleDemoPass1!"
-      appVersion={portalVersion}
+      appVersion={APP_VERSION}
       designSystemVersion={DESIGN_SYSTEM_VERSION}
     />
   ),
@@ -103,7 +104,7 @@ export const EHR: Story = {
       formSubtitle="Staff Sign In"
       email="demo.user@example.com"
       demoHint="demo.user@example.com / SampleDemoPass1!"
-      appVersion={ehrVersion}
+      appVersion={APP_VERSION}
       designSystemVersion={DESIGN_SYSTEM_VERSION}
     />
   ),

@@ -58,6 +58,9 @@
   padding: 0 6px;
   font-size: var(--cc-text-xs);
   font-weight: 600;
+  /* Every digit the same width, so a count that changes (89 → 92) does not
+     nudge the tabs after it. */
+  font-variant-numeric: tabular-nums;
   background: var(--cc-bg-muted);
   border-radius: var(--cc-radius-full);
   color: var(--cc-text-secondary);
