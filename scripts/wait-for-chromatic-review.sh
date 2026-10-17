@@ -10,13 +10,20 @@
 #   error
 #
 # Usage: wait-for-chromatic-review.sh <commit-sha> <build-url> [wait-minutes]
-# Needs GH_TOKEN (statuses: read) and GH_REPO (owner/name).
+# Needs GH_TOKEN (statuses: read) and GH_REPO (owner/name). ALREADY_ACCEPTED=true
+# (Chromatic skipped the upload: this commit's last build on the branch was
+# already accepted, e.g. when a deploy is re-run) passes without a build URL.
 set -euo pipefail
 
 SHA=${1:-}
 BUILD_URL=${2:-}
 WAIT_MINUTES=${3:-60}
 POLL_SECONDS=${POLL_SECONDS:-30}
+
+if [ "${ALREADY_ACCEPTED:-}" = true ]; then
+  echo "Visual review passed: Chromatic skipped the upload because this commit's last build on the branch was already accepted."
+  exit 0
+fi
 
 if [ -z "$BUILD_URL" ] || [ -z "$SHA" ]; then
   echo "::error::The staging run produced no Chromatic build, so its snapshots cannot be reviewed. Check its 'Publish end-to-end snapshots to Chromatic' step (a Chromatic outage or a missing CHROMATIC_PLAYWRIGHT_PROJECT_TOKEN), then re-run this deploy."

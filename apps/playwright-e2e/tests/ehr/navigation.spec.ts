@@ -1,6 +1,7 @@
 import { test, expect } from '../../support/fixtures';
 import { authFile } from '../../support/env';
 import type { Page } from '@playwright/test';
+import { expectTrackingBoardReady } from '../../support/pages';
 
 /**
  * Waits until the Claims page's three charts are drawn, so the snapshot shows
@@ -48,6 +49,7 @@ test.describe('manager', () => {
   test('is turned away from the new-claim form', async ({ page }) => {
     await page.goto('/billing/claims/new');
     await expect(page).toHaveURL(/\/visits$/);
+    await expectTrackingBoardReady(page);
   });
 });
 
@@ -60,5 +62,6 @@ test.describe('clinical staff', () => {
     await expect(page.getByRole('button', { name: 'Billing', exact: true })).toHaveCount(0);
     await page.goto('/billing/claims');
     await expect(page).toHaveURL(/\/visits$/);
+    await expectTrackingBoardReady(page);
   });
 });

@@ -93,7 +93,9 @@ export function PayerMixChart({
     <ChartCard title={title} subtitle={subtitle} height={height}>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
-          <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={95} paddingAngle={2} isAnimationActive={animate}>
+          {/* Radii as a share of the space left once the legend is laid out, so
+              the donut never runs under a legend that wraps in a narrow card. */}
+          <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="55%" outerRadius="85%" paddingAngle={2} isAnimationActive={animate}>
             {data.map((_, i) => (
               <Cell key={data[i].name} fill={chartSeries[i % chartSeries.length]} />
             ))}
