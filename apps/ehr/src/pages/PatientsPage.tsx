@@ -32,11 +32,16 @@ export function PatientsPage() {
   const [showAdd, setShowAdd] = useState(false);
 
   useEffect(() => {
+    // Each keystroke starts a request; ignore any that a newer search replaced,
+    // or a slow earlier response would overwrite the current results.
+    let current = true;
     setLoading(true);
     api.getPatients(search || undefined).then((rows) => {
+      if (!current) return;
       setPatients(rows);
       setLoading(false);
     }).catch(console.error);
+    return () => { current = false; };
   }, [search]);
 
   const filtered = patients.filter((p) => !dobFilter || p.dateOfBirth === dobFilter);

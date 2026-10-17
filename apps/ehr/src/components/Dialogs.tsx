@@ -110,7 +110,11 @@ export function PatientPickerDialog({ open, onClose, onSelect, title = 'Select P
   const [patients, setPatients] = useState<Patient[]>([]);
 
   useEffect(() => {
-    if (open) api.getPatients(search || undefined).then(setPatients);
+    if (!open) return;
+    // Ignore responses for a search the user has already typed past.
+    let current = true;
+    api.getPatients(search || undefined).then((rows) => { if (current) setPatients(rows); });
+    return () => { current = false; };
   }, [open, search]);
 
   return (
