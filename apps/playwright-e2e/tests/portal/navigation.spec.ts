@@ -25,16 +25,3 @@ for (const section of SECTIONS) {
     await expect(page.getByRole('heading', { level: 1, name: section.heading })).toBeVisible();
   });
 }
-
-test.describe('signing out', () => {
-  // Ends on the login page, which the login tests already capture.
-  test.use({ disableAutoSnapshot: true });
-
-  test('signing out ends the session', async ({ page }) => {
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Sign out' }).click();
-    await expect(page).toHaveURL(/\/login$/);
-    await page.goto('/visits');
-    await expect(page).toHaveURL(/\/login$/);
-  });
-});

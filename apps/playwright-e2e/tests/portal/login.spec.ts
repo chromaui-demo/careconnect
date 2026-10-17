@@ -1,5 +1,5 @@
 import { test, expect, signIn, signInWithPrefilledEmail } from '../../support/fixtures';
-import { DEPLOYED, PASSWORD, PREFILLED_USER, USERS } from '../../support/env';
+import { DEPLOYED, PASSWORD, PREFILLED_USER, USERS, authFile } from '../../support/env';
 import { REQUIRES, deployedVersionLine, skipUnlessServing } from '../../support/version';
 
 // These start signed out: they exercise the login form and the route guard.
@@ -50,5 +50,17 @@ test.describe('ending on the login page', () => {
     test.skip(DEPLOYED.unit !== 'portal', 'only checked when this run deployed the Portal');
     await page.goto('/login');
     await expect(page.getByText(deployedVersionLine())).toBeVisible();
+  });
+
+  test.describe('signed in', () => {
+    test.use({ storageState: authFile('patient') });
+
+    test('signing out ends the session', async ({ page }) => {
+      await page.goto('/');
+      await page.getByRole('button', { name: 'Sign out' }).click();
+      await expect(page).toHaveURL(/\/login$/);
+      await page.goto('/visits');
+      await expect(page).toHaveURL(/\/login$/);
+    });
   });
 });
