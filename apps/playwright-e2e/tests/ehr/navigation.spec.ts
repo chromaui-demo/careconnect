@@ -1,9 +1,10 @@
 import { test, expect } from '../../support/fixtures';
 import { authFile } from '../../support/env';
 
-// Billing is role-gated (apps/ehr/src/pages/billing/permissions.ts): Billing
-// and Administrator can edit, Manager can only view, everyone else is
-// redirected to the tracking board.
+// What each staff role can reach. Billing is role-gated
+// (apps/ehr/src/pages/billing/permissions.ts): Billing and Administrator can
+// edit, Manager can only view, everyone else is redirected to the tracking
+// board.
 
 test.describe('billing user', () => {
   test.use({ storageState: authFile('billing') });
