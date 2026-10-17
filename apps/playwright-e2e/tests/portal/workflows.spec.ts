@@ -1,5 +1,6 @@
 import { test, expect, takeSnapshot, signIn } from '../../support/fixtures';
-import { EHR_URL, PASSWORD, PREFILLED_USER, WORKFLOW_PATIENT, authFile, uniqueTag } from '../../support/env';
+import { EHR_URL, PASSWORD, WORKFLOW_PATIENT, authFile, uniqueTag } from '../../support/env';
+import { REQUIRES, skipUnlessServing } from '../../support/version';
 import type { Page } from '@playwright/test';
 
 // A patient's workflows completed end to end, saving real data.
@@ -18,10 +19,14 @@ import type { Page } from '@playwright/test';
 // explicit snapshot is the booking confirmation, which looks the same each run.
 test.use({ storageState: { cookies: [], origins: [] }, disableAutoSnapshot: true });
 
-/** Signs in the way a tester switching accounts would: over the prefilled email. */
+// Booking from the home page needs the service catalog readable by patients.
+test.beforeEach(async ({ browser }) => {
+  await skipUnlessServing(browser, REQUIRES.workflowApi);
+});
+
+/** Signs in as the workflow patient, typing over whatever the email field holds. */
 async function signInAsWorkflowPatient(page: Page) {
   await page.goto('/login');
-  await expect(page.getByLabel('Email address')).toHaveValue(PREFILLED_USER.portal);
   await signIn(page, WORKFLOW_PATIENT.email, PASSWORD);
   await expect(page.getByRole('heading', { level: 1, name: 'Welcome to CareConnect' })).toBeVisible();
   await expect(page.getByRole('banner')).toContainText(`${WORKFLOW_PATIENT.firstName} ${WORKFLOW_PATIENT.lastName}`);
@@ -87,7 +92,7 @@ test('a patient books a visit the EHR can see, completes its paperwork, then can
   }
 
   try {
-    await test.step('sign in over the prefilled account', async () => {
+    await test.step('sign in', async () => {
       await signInAsWorkflowPatient(page);
     });
 

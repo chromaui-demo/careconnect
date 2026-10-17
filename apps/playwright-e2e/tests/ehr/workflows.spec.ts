@@ -1,5 +1,6 @@
-import { test, expect, signInWithPrefilledEmail } from '../../support/fixtures';
-import { PASSWORD, PREFILLED_USER, uniqueTag } from '../../support/env';
+import { test, expect, signIn } from '../../support/fixtures';
+import { PASSWORD, USERS, uniqueTag } from '../../support/env';
+import { REQUIRES, skipUnlessServing } from '../../support/version';
 
 // A clinician's workflow completed end to end, saving real data.
 //
@@ -13,16 +14,17 @@ import { PASSWORD, PREFILLED_USER, uniqueTag } from '../../support/env';
 // time, so it would differ on every run without telling a reviewer anything.
 test.use({ storageState: { cookies: [], origins: [] }, disableAutoSnapshot: true });
 
-test('a clinician registers a walk-in, charts the encounter and signs it', async ({ page }) => {
+test('a clinician registers a walk-in, charts the encounter and signs it', async ({ page, browser }) => {
+  await skipUnlessServing(browser, REQUIRES.workflowApi, REQUIRES.ehrPatientSearch);
   test.slow();
   const lastName = uniqueTag();
   const patient = `Qa ${lastName}`;
   const reason = `Sore throat (${lastName})`;
   let visitUrl = '';
 
-  await test.step('sign in with the prefilled staff account', async () => {
+  await test.step('sign in as staff', async () => {
     await page.goto('/login');
-    await signInWithPrefilledEmail(page, PREFILLED_USER.ehr, PASSWORD);
+    await signIn(page, USERS.admin, PASSWORD);
     await expect(page.getByRole('heading', { level: 1, name: 'Tracking Board' })).toBeVisible();
   });
 
