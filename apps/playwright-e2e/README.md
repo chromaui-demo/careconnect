@@ -28,14 +28,15 @@ npx playwright show-report           # the last HTML report
 | `tests/auth.setup.ts` | Signs each role in through the real login form once and saves the session to `.auth/<role>.json`. |
 | `tests/api/` | Request-only tests (no browser). |
 | `tests/ehr/`, `tests/portal/` | Read-only browser tests, one Playwright project per app, each with its own `baseURL`. |
-| `tests/*/workflows.spec.ts` | Workflows completed and saved, in their own `ehr-workflows` and `portal-workflows` projects that start after the read-only ones. EHR: a walk-in → charted, signed encounter. Portal: booking → paperwork → cancellation (checked in the EHR as well), messaging, a refill, a payment. These write data (see below). |
+| `tests/*/workflows.spec.ts` | Workflows completed and saved, in their own `ehr-workflows` and `portal-workflows` projects that start after the read-only ones. EHR: a booked patient checked in → charted, signed encounter (captured for Chromatic), and a walk-in registration. Portal: booking → paperwork → cancellation (checked in the EHR as well), messaging, a refill, a payment. These write data (see below). |
 | `support/env.ts` | URLs, seeded accounts, the account each login form arrives prefilled with (`PREFILLED_USER`), the patient the Portal workflows act as (`WORKFLOW_PATIENT`), `uniqueTag()` for data the workflows create, deploy metadata. |
 | `support/fixtures.ts` | `test` / `expect` with Chromatic's snapshot fixture, plus `signIn()` and `signInWithPrefilledEmail()`. |
 
 ## Writing tests
 
 - **Read-only, except the workflows.** Staging is shared, both with people and with the other units' deploys, which run this suite in parallel. Tests don't create, edit or delete data, with one deliberate exception: `tests/*/workflows.spec.ts` complete real workflows and save what they create.
-  - **EHR:** each run registers a walk-in patient named `Qa E2E-…`, then charts and signs their encounter.
+  - **EHR:** each run books a visit through the API for one fixed patient, Jordan Rivera (`ENCOUNTER_PATIENT` in `support/api.ts`, created once per environment). The test then checks Jordan in on the tracking board, charts and signs the encounter, and captures the charted encounter for Chromatic. The same patient, chart and orders every run make that snapshot identical each time. Each run also registers a walk-in patient named `Qa E2E-…`. Both tests close their visit afterwards, even when they fail, so nobody lingers in the in-office queue.
+  - **Arrange through the API, act through the UI.** When a screen worth capturing depends on data, set the data up with the helpers in `support/api.ts` and do only the work under test in the browser. That keeps the snapshot the same on every run.
   - **Portal:** each run signs in as Bob Johnson (`WORKFLOW_PATIENT`), typing his email over the prefilled one. It books a visit, checks the EHR shows it, completes its paperwork and cancels it. It also starts a message thread and replies, requests an Atorvastatin refill, and pays $1.00.
   - **Why not the prefilled patient (Alice Smith):** the read-only tests snapshot Alice's pages for Chromatic. If the workflows paid or booked as Alice, her balance, inbox and visits would change every run, and so would every snapshot of them.
   - **What stays behind:** staging is never reset and the API has no delete, so all of this accumulates with every staging deploy. Bob's balance falls by $1.00 a run, and the payment test skips itself once it reaches zero.
