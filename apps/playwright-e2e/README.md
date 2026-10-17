@@ -27,15 +27,22 @@ npx playwright show-report           # the last HTML report
 |---|---|
 | `tests/auth.setup.ts` | Signs each role in through the real login form once and saves the session to `.auth/<role>.json`. |
 | `tests/api/` | Request-only tests (no browser). |
-| `tests/ehr/`, `tests/portal/` | Browser tests, one Playwright project per app, each with its own `baseURL`. |
-| `support/env.ts` | URLs, seeded accounts, deploy metadata. |
-| `support/fixtures.ts` | `test` / `expect` with Chromatic's snapshot fixture, plus `signIn()`. |
+| `tests/ehr/`, `tests/portal/` | Read-only browser tests, one Playwright project per app, each with its own `baseURL`. |
+| `tests/*/workflows.spec.ts` | Workflows completed and saved, in their own `ehr-workflows` and `portal-workflows` projects that start after the read-only ones. EHR: a walk-in → charted, signed encounter. Portal: booking → paperwork → cancellation (checked in the EHR as well), messaging, a refill, a payment. These write data (see below). |
+| `support/env.ts` | URLs, seeded accounts, the account each login form arrives prefilled with (`PREFILLED_USER`), the patient the Portal workflows act as (`WORKFLOW_PATIENT`), `uniqueTag()` for data the workflows create, deploy metadata. |
+| `support/fixtures.ts` | `test` / `expect` with Chromatic's snapshot fixture, plus `signIn()` and `signInWithPrefilledEmail()`. |
 
 ## Writing tests
 
-- **Read-only.** Staging is shared, both with people and with the other units' deploys, which run this suite in parallel. Don't create, edit or delete data. A flow that has to write needs its own isolated, uniquely named data and its own cleanup, and should be discussed first.
+- **Read-only, except the workflows.** Staging is shared, both with people and with the other units' deploys, which run this suite in parallel. Tests don't create, edit or delete data, with one deliberate exception: `tests/*/workflows.spec.ts` complete real workflows and save what they create.
+  - **EHR:** each run registers a walk-in patient named `Qa E2E-…`, then charts and signs their encounter.
+  - **Portal:** each run signs in as Bob Johnson (`WORKFLOW_PATIENT`), typing his email over the prefilled one. It books a visit, checks the EHR shows it, completes its paperwork and cancels it. It also starts a message thread and replies, requests an Atorvastatin refill, and pays $1.00.
+  - **Why not the prefilled patient (Alice Smith):** the read-only tests snapshot Alice's pages for Chromatic. If the workflows paid or booked as Alice, her balance, inbox and visits would change every run, and so would every snapshot of them.
+  - **What stays behind:** staging is never reset and the API has no delete, so all of this accumulates with every staging deploy. Bob's balance falls by $1.00 a run, and the payment test skips itself once it reaches zero.
+  - **Rules for any new test that writes:** put it in a `workflows.spec.ts` file so it runs after the read-only tests. Tag what it creates with `uniqueTag()` and find it by that tag, never by position or count, because concurrent runs share the data. Never tag it `@smoke`, so it never runs in production.
 - **Import from `support/fixtures`** in browser tests, so each test's final page is captured for Chromatic. Call `takeSnapshot(page, 'name', testInfo)` for a mid-flow state worth reviewing. API tests and setup import from `@playwright/test`.
-- **Start signed in.** Use `test.use({ storageState: authFile('billing') })`, and log in through the UI only in the login specs.
+- **Send Chromatic only pages that stay the same from run to run.** The snapshots are for developers reviewing UI changes between deploys, so a snapshot that differs every run hides real changes. Turn the automatic snapshot off with `test.use({ disableAutoSnapshot: true })` in two cases: when a test ends on a page another test already captures (most often the login page), and when it ends on data the run itself created. Values that change with the data rather than the UI, such as the tracking board's tab counts, go in `ignoreSelectors` in `playwright.config.ts`.
+- **Start signed in.** Use `test.use({ storageState: authFile('billing') })`, and log in through the UI only in the login specs and the workflows.
 - **Locate elements the way users do**, with `getByRole`, `getByLabel` and visible text. Avoid CSS classes and fixed waits; web-first assertions retry on their own.
 - **Tag `@smoke`** only for tests that are fast, read-only and safe to run against production.
 - **Assert something positive.** "The URL changed" also passes on a crashed blank page, so check for a heading or a control as well.

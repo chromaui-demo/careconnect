@@ -1,8 +1,9 @@
 import { test, expect } from '../../support/fixtures';
 import { authFile } from '../../support/env';
 
-// Read-only on purpose: staging is shared with people and with other units'
-// deploys running this suite in parallel, so nothing here books, messages or pays.
+// Read-only on purpose: these capture the prefilled demo patient's pages for
+// Chromatic, so they must look the same from run to run. The workflow tests
+// that book, message and pay do so as a different patient.
 test.use({ storageState: authFile('patient') });
 
 const SECTIONS = [
@@ -25,10 +26,15 @@ for (const section of SECTIONS) {
   });
 }
 
-test('signing out ends the session', async ({ page }) => {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Sign out' }).click();
-  await expect(page).toHaveURL(/\/login$/);
-  await page.goto('/visits');
-  await expect(page).toHaveURL(/\/login$/);
+test.describe('signing out', () => {
+  // Ends on the login page, which the login tests already capture.
+  test.use({ disableAutoSnapshot: true });
+
+  test('signing out ends the session', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Sign out' }).click();
+    await expect(page).toHaveURL(/\/login$/);
+    await page.goto('/visits');
+    await expect(page).toHaveURL(/\/login$/);
+  });
 });
