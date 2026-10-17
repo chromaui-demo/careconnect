@@ -1,5 +1,11 @@
 # @careconnect/design-system
 
+## 1.1.3
+
+### Patch Changes
+
+- 6b38584: The payer mix donut no longer runs under its legend in a short or narrow card. Its radii now scale with the space left once the legend is laid out.
+
 ## 1.1.2
 
 ### Patch Changes
