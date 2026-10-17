@@ -1,5 +1,11 @@
 # @careconnect/design-system
 
+## 1.1.4
+
+### Patch Changes
+
+- 0d5766c: Tab counts use tabular figures, so a count that changes no longer shifts the tabs after it.
+
 ## 1.1.3
 
 ### Patch Changes
