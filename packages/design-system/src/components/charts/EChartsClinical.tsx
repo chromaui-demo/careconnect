@@ -1,13 +1,16 @@
 import ReactECharts from 'echarts-for-react';
 import { ChartCard } from '../charts/ChartCard';
 import { chartColors } from '../charts/chartTheme';
+import { usePrefersReducedMotion } from './usePrefersReducedMotion';
 
 export interface ClinicalRadarChartProps {
   height?: number;
 }
 
 export function ClinicalRadarChart({ height = 280 }: ClinicalRadarChartProps) {
+  const animate = !usePrefersReducedMotion();
   const option = {
+    animation: animate,
     color: [chartColors.primary, chartColors.info],
     tooltip: {},
     legend: { bottom: 0, textStyle: { color: chartColors.text } },
@@ -55,7 +58,9 @@ export function UtilizationGaugeChart({
   subtitle = 'Rooms in use · ECharts gauge',
   label = 'Room utilization',
 }: UtilizationGaugeChartProps) {
+  const animate = !usePrefersReducedMotion();
   const option = {
+    animation: animate,
     series: [
       {
         type: 'gauge',
@@ -95,7 +100,9 @@ export interface LabTrendChartProps {
 }
 
 export function LabTrendChart({ height = 280 }: LabTrendChartProps) {
+  const animate = !usePrefersReducedMotion();
   const option = {
+    animation: animate,
     color: [chartColors.accent, chartColors.success],
     tooltip: { trigger: 'axis' },
     legend: { bottom: 0 },
