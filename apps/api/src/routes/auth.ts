@@ -40,10 +40,22 @@ authRouter.get('/me', authRequired, (req, res) => {
 });
 
 export const adminRouter = Router();
-// The service catalog is read by every signed-in user — patients choose a
-// service when booking, and clinical staff filter the tracking board by it —
-// so it is registered ahead of the admin-role guard below.
+// Reference lists every signed-in user reads — patients choose a service and a
+// location when booking, and all staff filter the tracking board by service,
+// location and provider — so they are registered ahead of the admin-role
+// guard below. Providers come back as names only, and only to staff: the full
+// employee list, with emails and roles, stays behind the guard.
 adminRouter.get('/service-categories', authRequired, (_req, res) => res.json(queryAll('SELECT * FROM service_categories ORDER BY name')));
+adminRouter.get('/locations', authRequired, (_req, res) => res.json(queryAll('SELECT * FROM locations ORDER BY name')));
+adminRouter.get('/providers', authRequired, (req, res) => {
+  if (req.user!.role === 'Patient') {
+    res.status(403).json({ error: 'Insufficient permissions' });
+    return;
+  }
+  res.json(queryAll(
+    "SELECT id, first_name, last_name FROM users WHERE role IN ('Provider', 'Administrator') AND active = 1 ORDER BY last_name",
+  ).map((u) => ({ id: u.id, firstName: u.first_name, lastName: u.last_name })));
+});
 adminRouter.use(authRequired, requireRoles('Administrator', 'Manager', 'CustomerSupport'));
 
 adminRouter.get('/employees', (_req, res) => {
@@ -63,7 +75,6 @@ adminRouter.post('/employees', (req, res) => {
   res.status(201).json({ id });
 });
 
-adminRouter.get('/locations', (_req, res) => res.json(queryAll('SELECT * FROM locations ORDER BY name')));
 adminRouter.get('/schedules', (_req, res) => res.json(queryAll(`
     SELECT s.*, u.first_name || ' ' || u.last_name as practitioner_name, l.name as location_name
     FROM schedules s JOIN users u ON u.id = s.practitioner_id JOIN locations l ON l.id = s.location_id

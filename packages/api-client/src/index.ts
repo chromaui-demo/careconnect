@@ -315,6 +315,8 @@ export const api = {
 
   admin: {
     getEmployees: () => request<Employee[]>('/admin/employees'),
+    /** Providers' names, for filtering by provider; readable by all staff. */
+    getProviders: () => request<Array<Pick<Employee, 'id' | 'firstName' | 'lastName'>>>('/admin/providers'),
     getLocations: () => request<Location[]>('/admin/locations'),
     getServices: () => request<ServiceCategory[]>('/admin/service-categories'),
     getSchedules: () => request<Schedule[]>('/admin/schedules'),

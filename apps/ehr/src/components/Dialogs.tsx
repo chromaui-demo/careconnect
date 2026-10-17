@@ -138,9 +138,11 @@ export function useFilterOptions() {
 
   useEffect(() => {
     api.admin.getLocations().then((rows) => setLocations([{ value: 'all', label: 'All Locations' }, ...rows.map((l) => ({ value: l.name, label: l.name }))]));
-    api.admin.getEmployees().then((rows) => setProviders([
+    // Not getEmployees: that list is admin-only, which left clinical staff
+    // with no providers to filter the tracking board by.
+    api.admin.getProviders().then((rows) => setProviders([
       { value: 'all', label: 'All Providers' },
-      ...rows.filter((e: Employee) => e.role === 'Provider' || e.role === 'Administrator').map((e) => ({ value: `${e.firstName} ${e.lastName}`, label: `${e.firstName} ${e.lastName}` })),
+      ...rows.map((e) => ({ value: e.id, label: `${e.firstName} ${e.lastName}` })),
     ]));
     api.admin.getServices().then((rows) => setServices([{ value: 'all', label: 'All Services' }, ...rows.map((s) => ({ value: s.name, label: s.name }))]));
   }, []);
