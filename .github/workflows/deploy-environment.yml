@@ -48,6 +48,9 @@ jobs:
     # that LAN (deploy/setup-runner.sh). This workflow is only ever started
     # by workflow_dispatch — never by pull_request — so forks cannot reach it.
     runs-on: [self-hosted, careconnect-lan]
+    # A healthy run takes about 3 minutes. There is one LAN runner, so a hung
+    # step would otherwise hold every unit's deploys for GitHub's 6-hour default.
+    timeout-minutes: 20
     # Protection rules on the environment (branch/tag restrictions, and any
     # reviewers or wait timer) still apply. The production approval itself is
     # the staging end-to-end gate in deploy.yml, so production needs no
@@ -214,6 +217,7 @@ jobs:
         id: chromatic
         if: always() && inputs.suite == 'full' && steps.e2e.outcome != 'skipped'
         continue-on-error: true
+        timeout-minutes: 5
         working-directory: ${{ steps.suite.outputs.dir }}
         env:
           CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PLAYWRIGHT_PROJECT_TOKEN }}
@@ -234,7 +238,10 @@ jobs:
           # the visual-review job reports Chromatic's own verdict.
           set -o pipefail
           status=0
-          npm run chromatic -- --exit-zero-on-changes | tee "$RUNNER_TEMP/chromatic.log" || status=$?
+          # --exit-once-uploaded: the visual-review job waits for Chromatic's
+          # verdict through the commit status, so this job doesn't wait for test
+          # results. Waiting here once held the runner after the build finished.
+          npm run chromatic -- --exit-zero-on-changes --exit-once-uploaded | tee "$RUNNER_TEMP/chromatic.log" || status=$?
           build_url=$(grep -o 'https://www.chromatic.com/build?appId=[A-Za-z0-9]*&number=[0-9]*' "$RUNNER_TEMP/chromatic.log" | tail -1 || true)
           echo "build-url=$build_url" >> "$GITHUB_OUTPUT"
           # Re-running a deploy of the same commit: Chromatic skips the upload
