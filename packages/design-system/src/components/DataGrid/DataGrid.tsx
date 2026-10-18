@@ -45,8 +45,8 @@ export function DataGrid<T>({
       const col = columns.find((c) => c.id === sortCol);
       if (col?.sortValue) {
         result = [...result].sort((a, b) => {
-          const av = String(col.sortValue!(a));
-          const bv = String(col.sortValue!(b));
+          const av = col.sortValue!(a);
+          const bv = col.sortValue!(b);
           const cmp = av < bv ? -1 : av > bv ? 1 : 0;
           return sortDir === 'asc' ? cmp : -cmp;
         });
