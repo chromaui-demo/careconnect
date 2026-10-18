@@ -154,3 +154,63 @@ export const SortsByAmount: Story = {
     await expect(firstPatient()).toHaveTextContent('Bob Johnson');
   },
 };
+
+// Different digit lengths distinguish numeric order from alphabetical order.
+// Keep the existing search fixtures unchanged.
+const mixedAmountClaims: ClaimRow[] = [
+  claims[0],
+  { id: 'CLM-9016', patient: 'Evelyn Park', payer: 'Aetna', amount: 1200, status: 'submitted' },
+  claims[1],
+  claims[2],
+  claims[3],
+];
+
+export const MixedClaimAmounts: Story = {
+  render: () => (
+    <DataGrid<ClaimRow>
+      rows={mixedAmountClaims}
+      rowKey={(row) => row.id}
+      columns={[
+        { id: 'id', header: 'Claim', accessor: (row) => row.id },
+        { id: 'patient', header: 'Patient', accessor: (row) => row.patient },
+        {
+          id: 'amount',
+          header: 'Amount',
+          accessor: (row) => `$${row.amount.toFixed(2)}`,
+          sortValue: (row) => row.amount,
+        },
+      ]}
+    />
+  ),
+};
+
+export const SortsMixedAmountsAscending: Story = {
+  ...MixedClaimAmounts,
+  play: async ({ canvas, userEvent, step }) => {
+    await step('Sort smallest to largest and verify every claim', async () => {
+      const amount = canvas.getByRole('columnheader', { name: 'Amount' });
+      await userEvent.click(amount);
+      await expect(amount).toHaveAttribute('aria-sort', 'ascending');
+      const claimOrder = canvas.getAllByRole('row').slice(1)
+        .map((row) => within(row).getAllByRole('cell')[0].textContent);
+      await expect(claimOrder).toEqual(['CLM-9014', 'CLM-9012', 'CLM-9015', 'CLM-9013', 'CLM-9016']);
+    });
+  },
+};
+
+export const SortsMixedAmountsDescending: Story = {
+  ...MixedClaimAmounts,
+  play: async ({ canvas, userEvent, step }) => {
+    const amount = canvas.getByRole('columnheader', { name: 'Amount' });
+    await step('Select descending order', async () => {
+      await userEvent.click(amount);
+      await userEvent.click(amount);
+    });
+    await step('Verify largest to smallest for every claim', async () => {
+      await expect(amount).toHaveAttribute('aria-sort', 'descending');
+      const claimOrder = canvas.getAllByRole('row').slice(1)
+        .map((row) => within(row).getAllByRole('cell')[0].textContent);
+      await expect(claimOrder).toEqual(['CLM-9016', 'CLM-9013', 'CLM-9015', 'CLM-9012', 'CLM-9014']);
+    });
+  },
+};
