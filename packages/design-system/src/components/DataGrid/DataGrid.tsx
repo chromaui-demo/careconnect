@@ -96,7 +96,7 @@ export function DataGrid<T>({
                     onClick={() => toggleSort(col.id, sortable)}
                     aria-sort={sortCol === col.id ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
                   >
-                    {col.hideHeader ? null : col.header}
+                    {col.hideHeader ? <span className="cc-data-grid__visually-hidden">{col.header}</span> : col.header}
                     {sortable && sortCol === col.id && (
                       <span className="cc-data-grid__sort-icon" aria-hidden>{sortDir === 'asc' ? '↑' : '↓'}</span>
                     )}

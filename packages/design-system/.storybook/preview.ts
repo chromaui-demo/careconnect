@@ -31,9 +31,10 @@ const preview: Preview = {
       },
     },
     a11y: {
-      // Report axe violations in the Accessibility panel and in Chromatic
-      // without failing the story tests, while the refreshed palette settles.
-      test: 'todo',
+      // Any axe violation fails the story test, locally and in CI, so the
+      // library stays at zero instead of drifting back. Chromatic audits the
+      // dark-theme modes as well.
+      test: 'error',
     },
   },
 };

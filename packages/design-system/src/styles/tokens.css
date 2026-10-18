@@ -21,8 +21,8 @@
      matching -subtle background. Both meet WCAG AA (4.5:1) in each theme —
      theme-dark.css lightens -text and darkens -subtle. */
   --cc-primary-text: #0D7377;
-  --cc-success-text: #2A9D8F;
-  --cc-warning-text: #C08A12;
+  --cc-success-text: #20776C;
+  --cc-warning-text: #8A6508;
   --cc-error-text: #C23C1B;
   --cc-info-text: #407191;
 
@@ -39,8 +39,8 @@
   --cc-border-strong: #B8C4D0;
 
   --cc-text: #1A2332;
-  --cc-text-secondary: #7D8899;
-  --cc-text-muted: #8B95A5;
+  --cc-text-secondary: #5A6577;
+  --cc-text-muted: #626D7F;
   --cc-text-inverse: #FFFFFF;
 
   /* Typography */

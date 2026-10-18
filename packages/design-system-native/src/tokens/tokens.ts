@@ -22,8 +22,8 @@ export const colors = {
   info: '#407191',
 
   primaryText: '#0D7377',
-  successText: '#2A9D8F',
-  warningText: '#C08A12',
+  successText: '#20776C',
+  warningText: '#8A6508',
   errorText: '#C23C1B',
   infoText: '#407191',
 
@@ -39,8 +39,8 @@ export const colors = {
   borderStrong: '#B8C4D0',
 
   text: '#1A2332',
-  textSecondary: '#7D8899',
-  textMuted: '#8B95A5',
+  textSecondary: '#5A6577',
+  textMuted: '#626D7F',
   textInverse: '#FFFFFF',
 } as const;
 
