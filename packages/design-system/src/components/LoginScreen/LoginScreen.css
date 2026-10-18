@@ -204,3 +204,10 @@
     order: -1;
   }
 }
+
+@media (max-width: 480px) {
+  .cc-login-screen__stats {
+    grid-template-columns: 1fr;
+    gap: var(--cc-space-4);
+  }
+}
