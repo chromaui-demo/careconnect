@@ -1,6 +1,6 @@
 {
   "name": "@careconnect/design-system-native",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "description": "CareConnect's React Native component library — the native counterpart of @careconnect/design-system, built on the same tokens",
   "license": "MIT",
