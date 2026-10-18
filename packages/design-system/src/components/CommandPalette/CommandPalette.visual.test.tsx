@@ -10,6 +10,7 @@ beforeEach(async () => {
 
 test('keyboard navigation through filtered results', async () => {
   const screen = await render(<CommandPalette open onClose={() => {}} items={sampleCommandItems} />);
+  await expect.element(screen.getByRole('button', { name: 'Create new appointment' })).toBeVisible();
   await takeSnapshot('all commands');
 
   await screen.getByRole('textbox').fill('go to');

@@ -55,6 +55,7 @@ beforeEach(async () => {
 // so a regression in any intermediate state shows up, not just the first paint.
 test('claims worklist: sort, search, and empty state', async () => {
   const screen = await render(<ClaimsGrid />);
+  await expect.element(screen.getByText('4 rows')).toBeVisible();
   await takeSnapshot('unsorted');
 
   const amount = screen.getByText(/^Amount/);

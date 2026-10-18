@@ -100,14 +100,17 @@ any other snapshot.
 
 ```tsx
 import { configure, takeSnapshot } from '@chromatic-com/vitest';
+import { expect, test } from 'vitest';
 import { page } from 'vitest/browser';
 import { render } from 'vitest-browser-react';
 
 test('discharge a patient', async () => {
   await page.viewport(375, 812);
   const screen = await render(<DischargeScreen />, { wrapper: ToastProvider });
+  await expect.element(screen.getByRole('button', { name: 'Discharge' })).toBeVisible();
   await takeSnapshot('in office');          // a named snapshot mid-test
   await screen.getByRole('button', { name: 'Discharge' }).click();
+  await expect.element(screen.getByRole('dialog')).toBeVisible();
   await takeSnapshot('confirm dialog');
   // ...and one more, automatically, when the test ends
 });
@@ -129,6 +132,14 @@ describe('Windows high contrast', () => {
   `render` + an `afterEach(cleanup)`: the end-of-test snapshot runs in an
   `afterEach`, and an earlier cleanup would leave it an empty page.
   `vitest-browser-react` cleans up before the next render instead.
+- Assert the state, then snapshot it. `expect.element` retries until the UI
+  matches, so the capture never races a render; never wait on a timer.
+- Use fixed fixtures, not live data or the current date, so a snapshot changes
+  only when the UI does. Keep `ignoreSelectors` for what a test cannot fix.
+- The suite runs with reduced motion, in the test browser and in Chromatic's
+  render (`vite.config.ts`), so animated UI is captured in its final state.
+- The end-of-test snapshot is taken even when an assertion fails, so a
+  reviewer sees the screen where the test stopped.
 - Assertions are real: CI runs the suite in the `design-system` job alongside
   the story tests.
 

@@ -60,11 +60,15 @@ beforeEach(() => {
   document.documentElement.removeAttribute('data-theme');
 });
 
+// Each takeSnapshot() follows an assertion on the state it captures, so a
+// snapshot is never taken before the UI has settled. The end of the test is
+// captured too, even when an assertion fails: the reviewer sees where it stopped.
 test.for(variants)('discharge a patient ($theme, $viewport)', async ({ theme, width, height }) => {
   await page.viewport(width, height);
   document.documentElement.dataset.theme = theme;
 
   const screen = await render(<DischargeScreen />, { wrapper: ToastProvider });
+  await expect.element(screen.getByRole('button', { name: 'Discharge' })).toBeVisible();
   await takeSnapshot('in office');
 
   await screen.getByRole('button', { name: 'Discharge' }).click();

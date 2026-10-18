@@ -84,7 +84,10 @@ export default defineConfig({
       // project. See: https://www.chromatic.com/docs/vitest/
       {
         extends: true,
-        plugins: [chromaticPlugin({ turboSnap: true })],
+        // Reduced motion here and in the browser below, as in the Playwright
+        // suite: the test browser settles animations before the DOM is
+        // archived, and Chromatic renders the archive the same way.
+        plugins: [chromaticPlugin({ turboSnap: true, prefersReducedMotion: 'reduce' })],
         // The plugin's browser runtime uses top-level await, which Vite 6's
         // dependency pre-bundler (ES2020 target) rejects; serve it as-is.
         optimizeDeps: { exclude: ['@chromatic-com/vitest'] },
@@ -95,7 +98,7 @@ export default defineConfig({
           browser: {
             enabled: true,
             headless: true,
-            provider: playwright({}),
+            provider: playwright({ contextOptions: { reducedMotion: 'reduce' } }),
             instances: [{ browser: 'chromium' }],
           },
         },
