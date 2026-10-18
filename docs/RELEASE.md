@@ -145,6 +145,7 @@ Turn on **Settings → Actions → General → Workflow permissions → "Allow G
 ### Branch protection on `main`
 
 - Require the **All units passed** status check from `ci.yml`.
+- Require the **No do-not-merge label** status check from `merge-guard.yml`. It fails while a PR has the `do not merge` label, which marks recorded demo PRs that must never merge.
 - Require review from Code Owners.
 - Disallow direct pushes, force pushes, and branch deletion.
 - To let the Version Packages PR merge itself, enable **Allow auto-merge** in the repository settings and set the repository variable `AUTO_MERGE_VERSION_PR=true`.
