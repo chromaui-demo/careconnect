@@ -104,8 +104,6 @@ import { expect, test } from 'vitest';
 import { page } from 'vitest/browser';
 import { render } from 'vitest-browser-react';
 
-configure({ cropToViewport: true });        // fixed dialogs and toasts stay in frame
-
 test('discharge a patient', async () => {
   await page.viewport(375, 812);
   const screen = await render(<DischargeScreen />, { wrapper: ToastProvider });
@@ -140,9 +138,6 @@ describe('Windows high contrast', () => {
   only when the UI does. Keep `ignoreSelectors` for what a test cannot fix.
 - The suite runs with reduced motion, in the test browser and in Chromatic's
   render (`vite.config.ts`), so animated UI is captured in its final state.
-- Use `cropToViewport` for screens with fixed overlays (dialogs, toasts):
-  the capture is otherwise the page's height, and on a phone a toast pinned to
-  the bottom of the viewport falls out of it.
 - The end-of-test snapshot is taken even when an assertion fails, so a
   reviewer sees the screen where the test stopped.
 - Assertions are real: CI runs the suite in the `design-system` job alongside

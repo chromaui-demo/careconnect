@@ -1,4 +1,4 @@
-import { configure, takeSnapshot } from '@chromatic-com/vitest';
+import { takeSnapshot } from '@chromatic-com/vitest';
 import { useState } from 'react';
 import { beforeEach, expect, test } from 'vitest';
 import { page } from 'vitest/browser';
@@ -55,11 +55,6 @@ const variants = [
   { theme: 'light', viewport: 'mobile', width: 375, height: 812 },
   { theme: 'dark', viewport: 'mobile', width: 375, height: 812 },
 ] as const;
-
-// The dialog and the toast are fixed to the viewport, so capture the screen the
-// user sees rather than the page's height: on a phone the toast otherwise
-// falls off the bottom of the snapshot.
-configure({ cropToViewport: true });
 
 beforeEach(() => {
   document.documentElement.removeAttribute('data-theme');
