@@ -19,9 +19,9 @@
 .cc-modal__body { padding: var(--cc-space-5); color: var(--cc-text-secondary); font-size: var(--cc-text-sm); }
 .cc-modal__footer { display: flex; justify-content: flex-end; gap: var(--cc-space-3); padding: var(--cc-space-4) var(--cc-space-5); border-top: 1px solid var(--cc-border); }
 
-/* Phones: the dialog becomes a bottom sheet, short enough that the record
-   behind it stays in view. */
+/* Phones: the dialog becomes a bottom sheet, with the same height cap as on
+   larger screens, so its text and actions always fit. */
 @media (max-width: 480px) {
   .cc-modal-backdrop { align-items: flex-end; padding: 0; }
-  .cc-modal { max-height: 15vh; border-radius: var(--cc-radius-lg) var(--cc-radius-lg) 0 0; }
+  .cc-modal { max-height: 90vh; border-radius: var(--cc-radius-lg) var(--cc-radius-lg) 0 0; }
 }
