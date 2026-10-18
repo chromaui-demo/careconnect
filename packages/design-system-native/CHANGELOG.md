@@ -1,5 +1,11 @@
 # @careconnect/design-system-native
 
+## 1.1.1
+
+### Patch Changes
+
+- c68b8ba: Lighter secondary, muted, success and warning text colors. Progress reads its name from the visible label, and DataGrid columns with `hideHeader` render no header text. Story accessibility checks now report violations instead of failing.
+
 ## 1.1.0
 
 ### Minor Changes
