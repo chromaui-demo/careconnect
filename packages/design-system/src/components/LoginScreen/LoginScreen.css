@@ -197,6 +197,20 @@
   .cc-login-screen__compliance {
     margin-top: var(--cc-space-6);
   }
+
+  /* On phones the keyboard covers the bottom of the form, so the error sits at
+     the top where it stays visible, without pushing the fields down. */
+  .cc-login-screen__form {
+    position: relative;
+  }
+
+  .cc-login-screen__error {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+  }
 }
 
 @media (max-width: 480px) {
