@@ -32,7 +32,7 @@ export function Progress({
           {showValue && <span className="cc-progress__value">{Math.round(pct)}%</span>}
         </div>
       )}
-      <div className={clsx('cc-progress__track', `cc-progress__track--${size}`)} role="progressbar" aria-labelledby={label ? labelId : undefined} aria-label={label ? undefined : ariaLabel} aria-valuenow={value} aria-valuemin={0} aria-valuemax={max}>
+      <div className={clsx('cc-progress__track', `cc-progress__track--${size}`)} role="progressbar" aria-label={label ? undefined : ariaLabel} aria-valuenow={value} aria-valuemin={0} aria-valuemax={max}>
         <div className={clsx('cc-progress__bar', `cc-progress__bar--${variant}`)} style={{ width: `${pct}%` }} />
       </div>
     </div>
