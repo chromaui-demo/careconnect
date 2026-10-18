@@ -1,0 +1,46 @@
+name: Merge guard
+
+# Fails while a pull request carries the "do not merge" label, so recorded
+# demo PRs can't be merged by mistake. Required in the main ruleset as
+# "No do-not-merge label"; removing the label re-runs it and turns it green.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  # Required checks must also report on merge-queue refs, or the queue stalls
+  # waiting for a status that never arrives. Harmless when no queue is enabled.
+  merge_group:
+
+concurrency:
+  group: merge-guard-${{ github.ref }}
+  # Not on merge-queue refs: cancelling a queued check ejects the PR from the
+  # queue. Label toggles on a PR only need the latest run.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  pull-requests: read
+
+jobs:
+  label:
+    name: No do-not-merge label
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for the do not merge label
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          QUEUE_REF: ${{ github.event.merge_group.head_ref }}
+        run: |
+          # Merge-queue refs carry no labels, so read them from the queued PR
+          # (refs/heads/gh-readonly-queue/<base>/pr-<number>-<sha>). Reading
+          # them from the API rather than the event also makes a re-run see
+          # the current labels.
+          if [ -z "$PR" ]; then
+            PR=$(sed -n 's|.*/pr-\([0-9]*\)-.*|\1|p' <<<"$QUEUE_REF")
+          fi
+          labels=$(gh api "repos/$REPO/issues/$PR/labels" --jq '.[].name')
+          if grep -qx 'do not merge' <<<"$labels"; then
+            echo "::error::PR #$PR has the \"do not merge\" label. Remove the label to merge it."
+            exit 1
+          fi
+          echo "PR #$PR has no \"do not merge\" label."
