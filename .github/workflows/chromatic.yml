@@ -11,8 +11,8 @@ name: Chromatic
 # skipped by an `if:` is different: it reports a conclusion, which branch
 # protection accepts.) TurboSnap makes the unfiltered runs cheap — a PR that
 # touches no story snapshots nothing and bills nothing; the cost is one
-# Storybook build per run, and a PR that changes only documentation skips even
-# that (scripts/docs-only-change.sh).
+# Storybook build per run. Documentation-only and verified version-only release
+# PRs skip even that, while Chromatic still reports passing required statuses.
 on:
   pull_request:
   push:
@@ -57,14 +57,25 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: scripts/docs-only-change.sh
 
+      # Check the diff, not just the bot branch name. Keep publishing skip
+      # statuses through Chromatic so required UI checks still report.
+      - name: Version-only release PR?
+        id: release
+        env:
+          EVENT: ${{ github.event_name }}
+          HEAD_BRANCH: ${{ github.head_ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/version-only-release.mjs
+
       - uses: actions/setup-node@v7
-        if: steps.docs.outputs.docs_only != 'true'
+        if: steps.docs.outputs.docs_only != 'true' && steps.release.outputs.version_only != 'true'
         with:
           node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies
-        if: steps.docs.outputs.docs_only != 'true'
+        if: steps.docs.outputs.docs_only != 'true' && steps.release.outputs.version_only != 'true'
         run: npm ci
 
       # Skip rather than fail red until CHROMATIC_PROJECT_TOKEN is configured
@@ -83,7 +94,7 @@ jobs:
         with:
           projectToken: ${{ env.CHROMATIC_PROJECT_TOKEN }}
           workingDir: packages/design-system
-          skip: ${{ steps.docs.outputs.docs_only == 'true' }}
+          skip: ${{ steps.docs.outputs.docs_only == 'true' || steps.release.outputs.version_only == 'true' }}
           exitZeroOnChanges: true
           autoAcceptChanges: ${{ github.event_name == 'push' }}
           # TurboSnap: snapshot only the stories the commit actually affects,
@@ -132,25 +143,36 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: scripts/docs-only-change.sh
 
+      # Check the diff, not just the bot branch name. Keep publishing skip
+      # statuses through Chromatic so required UI checks still report.
+      - name: Version-only release PR?
+        id: release
+        env:
+          EVENT: ${{ github.event_name }}
+          HEAD_BRANCH: ${{ github.head_ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/version-only-release.mjs
+
       - uses: actions/setup-node@v7
-        if: steps.docs.outputs.docs_only != 'true'
+        if: steps.docs.outputs.docs_only != 'true' && steps.release.outputs.version_only != 'true'
         with:
           node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies
-        if: env.CHROMATIC_PROJECT_TOKEN != '' && steps.docs.outputs.docs_only != 'true'
+        if: env.CHROMATIC_PROJECT_TOKEN != '' && steps.docs.outputs.docs_only != 'true' && steps.release.outputs.version_only != 'true'
         run: npm ci
 
       - name: Install Playwright browser
-        if: env.CHROMATIC_PROJECT_TOKEN != '' && steps.docs.outputs.docs_only != 'true'
+        if: env.CHROMATIC_PROJECT_TOKEN != '' && steps.docs.outputs.docs_only != 'true' && steps.release.outputs.version_only != 'true'
         run: npx playwright install --with-deps chromium
 
       # Writes the DOM archives to packages/design-system/.vitest/chromatic.
       # Assertion failures are reported by CI / design-system; upload whatever
       # was captured anyway so reviewers still see the snapshots.
       - name: Run visual tests
-        if: env.CHROMATIC_PROJECT_TOKEN != '' && steps.docs.outputs.docs_only != 'true'
+        if: env.CHROMATIC_PROJECT_TOKEN != '' && steps.docs.outputs.docs_only != 'true' && steps.release.outputs.version_only != 'true'
         continue-on-error: true
         run: npm run test:visual
 
@@ -161,7 +183,7 @@ jobs:
           projectToken: ${{ env.CHROMATIC_PROJECT_TOKEN }}
           workingDir: packages/design-system
           vitest: true
-          skip: ${{ steps.docs.outputs.docs_only == 'true' }}
+          skip: ${{ steps.docs.outputs.docs_only == 'true' || steps.release.outputs.version_only == 'true' }}
           exitZeroOnChanges: true
           autoAcceptChanges: ${{ github.event_name == 'push' }}
           # TurboSnap from Vite's module graph (`turboSnap: true` on the plugin
