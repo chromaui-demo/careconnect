@@ -99,6 +99,8 @@ push to main
 
 Only packages with changes receive a new version, tag, release, and deploy. A portal-only PR produces a portal-only Version Packages PR, a `@careconnect/portal@x.y.z` tag and release, and a single `Deploy portal` run. The API is never restarted.
 
+**Chromatic on version PRs.** Storybook and Vitest captures are skipped on `changeset-release/main` pull requests only when `scripts/version-only-release.mjs` verifies that the diff contains workspace version bumps, their changelogs, deleted changeset notes, and optionally matching workspace versions in the lockfile. Dependency, source, workflow, or other changes take the normal build path. Chromatic still posts passing skip statuses for required checks. Builds on `main` and merge-queue refs run normally, keeping the accepted baseline and published Storybook current. The React Native workflow retains its existing affected-package detection.
+
 **Cadence.** There is one Version Packages PR for the whole repository, so every pending change rides together when it merges. With auto-merge enabled, this amounts to continuous delivery per unit: each merged PR reaches production on its own within one train cycle, independently of the others. A team that needs to hold a release holds its own PR by not merging to `main` yet, rather than holding the train.
 
 ### Deploy pipeline (per unit)
