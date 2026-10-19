@@ -12,6 +12,9 @@ export interface PatientAllergy {
   severity: AllergySeverity;
 }
 
+const severityOrder: Record<AllergySeverity, number> = { severe: 0, moderate: 1, mild: 2 };
+const severityLabel: Record<AllergySeverity, string> = { severe: 'Severe', moderate: 'Moderate', mild: 'Mild' };
+
 export interface PatientBannerProps extends HTMLAttributes<HTMLDivElement> {
   name: string;
   mrn: string;
@@ -50,11 +53,16 @@ export function PatientBanner({
         </p>
         {(allergies.length > 0 || alerts.length > 0) && (
           <div className="cc-patient-banner__alerts">
-            {allergies.map((a) => (
-              <span key={a.substance} className="cc-patient-banner__alert">
-                {a.substance} allergy — {a.reaction} ({a.severity})
-              </span>
-            ))}
+            {[...allergies]
+              .sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity])
+              .map((a) => (
+                <span
+                  key={a.substance}
+                  className={a.severity === 'severe' ? 'cc-patient-banner__alert' : 'cc-patient-banner__allergy'}
+                >
+                  <strong>{severityLabel[a.severity]}</strong> · {a.substance} — {a.reaction}
+                </span>
+              ))}
             {alerts.map((a) => (
               <span key={a} className="cc-patient-banner__alert">{a}</span>
             ))}

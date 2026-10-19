@@ -110,22 +110,24 @@ exports[`renders PatientBanner with allergies before other alerts 1`] = `
         <span
           class="cc-patient-banner__alert"
         >
+          <strong>
+            Severe
+          </strong>
+           · 
           Penicillin
-           allergy — 
+           — 
           anaphylaxis
-           (
-          severe
-          )
         </span>
         <span
-          class="cc-patient-banner__alert"
+          class="cc-patient-banner__allergy"
         >
+          <strong>
+            Mild
+          </strong>
+           · 
           Latex
-           allergy — 
+           — 
           skin rash
-           (
-          mild
-          )
         </span>
         <span
           class="cc-patient-banner__alert"
