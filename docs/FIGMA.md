@@ -26,6 +26,76 @@ Published Storybook (branch permalinks): `https://main--6ace78da52f27f1047872614
 (replace `main` with any branch name). Build history:
 `https://www.chromatic.com/builds?appId=6ace78da52f27f1047872614`.
 
+## Appointment summary and visit-planning prototype
+
+`AppointmentSummaryCard` is a patient-facing composition of the shared `Card`
+and `Button`. Its stories use a fixed appointment with explicit date and time
+labels, so rendering does not depend on the current date or the browser's time
+zone. The component is exported from `@careconnect/design-system`; routing
+stays with the consumer through `onViewVisit(id)`.
+
+| Storybook entry | Purpose |
+| --- | --- |
+| Components/AppointmentSummaryCard → In Person | The component to link to a Figma component |
+| Components/AppointmentSummaryCard → Virtual | Alternate visit-type label |
+| Components/AppointmentSummaryCard → Long Details | Provider, reason and location wrapping |
+| Components/AppointmentSummaryCard → Opens Visit With Keyboard | Keyboard activation and the appointment ID passed to the callback |
+| Patterns/Visit Planning → Summary | Patient portal context for the same component |
+| Patterns/Visit Planning → Details | Appointment details and preparation information |
+| Patterns/Visit Planning → No Upcoming Visits | Empty-state content |
+| Patterns/Visit Planning → Summary To Details And Back | Clickable navigation with focus moved to each screen heading |
+
+The pattern uses local state and fixed data, with no API calls or patient
+records. It is tagged `!manifest` because its composition helper is not an
+exported component. Its interaction test returns to the summary; use the
+separate Details story for a stable capture of the intermediate screen.
+Both story files opt into phone and desktop Chromatic modes.
+
+The editable [CareConnect visit-planning prototype](https://www.figma.com/design/p50bGlCweI9dWFjv9nirhq/CareConnect-Visit-planning-prototype?node-id=8-8)
+contains six screens: summary, details, and empty state at desktop (1280px)
+and phone (375px) widths. Each summary's **View visit** action opens its
+matching details screen; **Back to My care** returns to the summary.
+
+- [Desktop prototype](https://www.figma.com/proto/p50bGlCweI9dWFjv9nirhq/CareConnect-Visit-planning-prototype?node-id=8-8&starting-point-node-id=8%3A8)
+- [Phone prototype](https://www.figma.com/proto/p50bGlCweI9dWFjv9nirhq/CareConnect-Visit-planning-prototype?node-id=8-71&starting-point-node-id=8%3A71)
+- [Appointment summary component](https://www.figma.com/design/p50bGlCweI9dWFjv9nirhq/CareConnect-Visit-planning-prototype?node-id=4-7)
+
+The file uses editable text, auto layout, reusable button and appointment-card
+components, and a scoped set of CareConnect light-mode color, spacing and
+radius variables. The card has desktop/phone and in-person/virtual variants.
+It is a scoped prototype, not the complete design-system library. Its two
+node URLs are registered in `src/figma/links.json`; the library fallback stays
+empty so unrelated stories do not link to this prototype.
+
+The repository's Storybook Design addon is connected through those URLs.
+The following published-project connections still need to be configured after
+the stories are published:
+
+1. For the Chromatic Designs tab, connect Figma in the project's settings and
+   link the appointment-summary **component** URL. Chromatic accepts Figma
+   components, not arbitrary frames or layers. This is separate from the
+   repository's addon-designs registry.
+2. In Figma, use Storybook Connect to open the published story. Confirm the
+   linked branch; the plugin follows the latest published build on that branch.
+3. Inspect design intent and implementation, then use UI Review to discuss and
+   verify implementation changes. A Figma connection does not automatically
+   approve a visual baseline or test implementation against the Figma image.
+
+See [Figma in Chromatic](https://www.chromatic.com/docs/figma-in-chromatic/)
+and [Storybook Connect](https://www.chromatic.com/docs/figma-plugin/) for
+connection requirements. The Figma flow uses fixed demo content; it does not
+schedule appointments or connect to patient data.
+
+### Figma access from Codex
+
+The project-scoped `.codex/config.toml` configures the remote Figma MCP endpoint
+at `https://mcp.figma.com/mcp`. Authenticate with `codex mcp login figma`, then
+restart the Codex session or IDE extension so it loads the server's tools.
+Authentication is per person; credentials do not belong in the repository.
+Codex's local clients share MCP configuration; see the
+[MCP setup documentation](https://learn.chatgpt.com/docs/extend/mcp?surface=cli).
+The separate `.mcp.json` configures the same endpoint for clients that read it.
+
 ## One-time Figma setup (~30–45 minutes, done in Figma)
 
 Figma's REST API cannot create design nodes, so the code → Figma step is a

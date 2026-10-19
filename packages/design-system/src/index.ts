@@ -36,6 +36,7 @@ export * from './components/FileUpload';
 export * from './components/AppointmentsFilterBar';
 export * from './components/ScheduleCalendar';
 export * from './components/AppointmentRow';
+export * from './components/AppointmentSummaryCard';
 export * from './components/Toast';
 export * from './components/CommandPalette';
 export * from './components/clinical';

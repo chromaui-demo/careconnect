@@ -1,0 +1,20 @@
+.cc-visit-planning { min-height: 100vh; background: var(--cc-bg); color: var(--cc-text); }
+.cc-visit-planning__brand { display: flex; align-items: center; justify-content: space-between; gap: var(--cc-space-4); padding: var(--cc-space-5) var(--cc-space-6); border-bottom: 1px solid var(--cc-border); background: var(--cc-bg-elevated); }
+.cc-visit-planning__brand span:first-child { color: var(--cc-primary-text); font-weight: 700; font-size: var(--cc-text-xl); }
+.cc-visit-planning__brand span:last-child { font-size: var(--cc-text-sm); }
+.cc-visit-planning__main { max-width: 48rem; margin: 0 auto; padding: var(--cc-space-8) var(--cc-space-6); }
+.cc-visit-planning__main h1 { margin: 0; font-size: var(--cc-text-3xl); }
+.cc-visit-planning__main h1:focus { outline: none; }
+.cc-visit-planning__main h2 { margin: 0 0 var(--cc-space-4); font-size: var(--cc-text-lg); }
+.cc-visit-planning__main h3 { margin-top: 0; }
+.cc-visit-planning__intro { margin: var(--cc-space-2) 0 var(--cc-space-8); }
+.cc-visit-planning__details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cc-space-4); margin: var(--cc-space-6) 0; }
+.cc-visit-planning__details dt { font-size: var(--cc-text-sm); }
+.cc-visit-planning__details dd { margin: var(--cc-space-1) 0 0; font-weight: 600; overflow-wrap: anywhere; }
+.cc-visit-planning__preparation { border-top: 1px solid var(--cc-border); padding-top: var(--cc-space-6); }
+.cc-visit-planning__preparation p { margin-bottom: 0; }
+@media (max-width: 575px) {
+  .cc-visit-planning__main { padding: var(--cc-space-6) var(--cc-space-4); }
+  .cc-visit-planning__brand { padding: var(--cc-space-4); }
+  .cc-visit-planning__details { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,12 @@
+.cc-appointment-summary { width: 100%; min-width: 0; color: var(--cc-text); }
+.cc-appointment-summary__eyebrow { margin: 0 0 var(--cc-space-2); color: var(--cc-primary-text); font-size: var(--cc-text-sm); font-weight: 600; }
+.cc-appointment-summary__title { margin: 0; font-size: var(--cc-text-xl); line-height: 1.3; overflow-wrap: anywhere; }
+.cc-appointment-summary__date { margin: var(--cc-space-2) 0 0; font-size: var(--cc-text-base); }
+.cc-appointment-summary__facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cc-space-4); margin: var(--cc-space-6) 0 0; }
+.cc-appointment-summary__facts dt { font-size: var(--cc-text-sm); }
+.cc-appointment-summary__facts dd { margin: var(--cc-space-1) 0 0; font-weight: 600; overflow-wrap: anywhere; }
+.cc-appointment-summary__actions { display: flex; margin-top: var(--cc-space-6); }
+@media (max-width: 575px) {
+  .cc-appointment-summary__facts { grid-template-columns: 1fr; }
+  .cc-appointment-summary__actions > .cc-button { width: 100%; }
+}
