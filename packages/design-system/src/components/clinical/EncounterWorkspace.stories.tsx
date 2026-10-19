@@ -44,7 +44,10 @@ export const InPersonVisit: Story = {
             dob: '03/14/1985',
             age: 41,
             sex: 'Female',
-            alerts: ['Penicillin allergy'],
+            allergies: [
+              { substance: 'Penicillin', reaction: 'anaphylaxis', severity: 'severe' },
+              { substance: 'Latex', reaction: 'skin rash', severity: 'mild' },
+            ],
           }}
         >
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>

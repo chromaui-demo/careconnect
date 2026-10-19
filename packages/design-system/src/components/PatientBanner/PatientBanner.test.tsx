@@ -42,3 +42,22 @@ test('renders PatientBanner with multiple alerts and actions', () => {
 
   expect(container).toMatchSnapshot();
 });
+
+test('renders PatientBanner with allergies before other alerts', () => {
+  const { container } = render(
+    <PatientBanner
+      name="Alice Smith"
+      mrn="MRN-10482"
+      dob="03/14/1985"
+      age={41}
+      sex="Female"
+      allergies={[
+        { substance: 'Penicillin', reaction: 'anaphylaxis', severity: 'severe' },
+        { substance: 'Latex', reaction: 'skin rash', severity: 'mild' },
+      ]}
+      alerts={['Fall risk']}
+    />
+  );
+
+  expect(container).toMatchSnapshot();
+});

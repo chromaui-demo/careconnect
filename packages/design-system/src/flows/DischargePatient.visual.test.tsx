@@ -21,7 +21,12 @@ function DischargeScreen() {
         age={41}
         sex="Female"
         status={status}
-        alerts={['Penicillin allergy', 'Fall risk']}
+        allergies={[
+          { substance: 'Penicillin', reaction: 'anaphylaxis', severity: 'severe' },
+          { substance: 'Sulfa drugs', reaction: 'hives', severity: 'moderate' },
+          { substance: 'Latex', reaction: 'skin rash', severity: 'mild' },
+        ]}
+        alerts={['Fall risk']}
         actions={
           status === 'in-office' && (
             <Button size="sm" onClick={() => setConfirming(true)}>
