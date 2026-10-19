@@ -15,7 +15,12 @@ export const ActiveEncounter: Story = {
     age: 41,
     sex: 'Female',
     status: 'in-office',
-    alerts: ['Penicillin allergy', 'Fall risk'],
+    allergies: [
+      { substance: 'Penicillin', reaction: 'anaphylaxis', severity: 'severe' },
+      { substance: 'Sulfa drugs', reaction: 'hives', severity: 'moderate' },
+      { substance: 'Latex', reaction: 'skin rash', severity: 'mild' },
+    ],
+    alerts: ['Fall risk'],
     actions: (
       <>
         <Button variant="secondary" size="sm">Message</Button>

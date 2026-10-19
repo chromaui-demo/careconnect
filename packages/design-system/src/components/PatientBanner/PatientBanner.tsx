@@ -4,6 +4,14 @@ import { Avatar } from '../Avatar';
 import { Badge } from '../Badge';
 import './PatientBanner.css';
 
+export type AllergySeverity = 'severe' | 'moderate' | 'mild';
+
+export interface PatientAllergy {
+  substance: string;
+  reaction: string;
+  severity: AllergySeverity;
+}
+
 export interface PatientBannerProps extends HTMLAttributes<HTMLDivElement> {
   name: string;
   mrn: string;
@@ -12,6 +20,7 @@ export interface PatientBannerProps extends HTMLAttributes<HTMLDivElement> {
   sex: string;
   status?: 'in-office' | 'prebooked' | 'completed' | 'cancelled';
   alerts?: string[];
+  allergies?: PatientAllergy[];
   actions?: ReactNode;
 }
 
@@ -23,6 +32,7 @@ export function PatientBanner({
   sex,
   status = 'in-office',
   alerts = [],
+  allergies = [],
   actions,
   className,
   ...props
@@ -38,8 +48,13 @@ export function PatientBanner({
         <p className="cc-patient-banner__meta">
           MRN {mrn} · DOB {dob} ({age}y) · {sex}
         </p>
-        {alerts.length > 0 && (
+        {(allergies.length > 0 || alerts.length > 0) && (
           <div className="cc-patient-banner__alerts">
+            {allergies.map((a) => (
+              <span key={a.substance} className="cc-patient-banner__alert">
+                {a.substance} allergy — {a.reaction} ({a.severity})
+              </span>
+            ))}
             {alerts.map((a) => (
               <span key={a} className="cc-patient-banner__alert">{a}</span>
             ))}

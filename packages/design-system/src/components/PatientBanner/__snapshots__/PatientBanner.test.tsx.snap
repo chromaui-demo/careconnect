@@ -59,6 +59,85 @@ exports[`renders PatientBanner 1`] = `
 </div>
 `;
 
+exports[`renders PatientBanner with allergies before other alerts 1`] = `
+<div>
+  <div
+    class="cc-patient-banner"
+  >
+    <span
+      aria-label="Alice Smith"
+      class="cc-avatar cc-avatar--lg"
+      style="background: var(--cc-accent);"
+    >
+      AS
+    </span>
+    <div
+      class="cc-patient-banner__info"
+    >
+      <div
+        class="cc-patient-banner__row"
+      >
+        <h2
+          class="cc-patient-banner__name"
+        >
+          Alice Smith
+        </h2>
+        <span
+          class="cc-badge cc-badge--in-office"
+        >
+          <span
+            aria-hidden="true"
+            class="cc-badge__dot"
+          />
+          in office
+        </span>
+      </div>
+      <p
+        class="cc-patient-banner__meta"
+      >
+        MRN 
+        MRN-10482
+         · DOB 
+        03/14/1985
+         (
+        41
+        y) · 
+        Female
+      </p>
+      <div
+        class="cc-patient-banner__alerts"
+      >
+        <span
+          class="cc-patient-banner__alert"
+        >
+          Penicillin
+           allergy — 
+          anaphylaxis
+           (
+          severe
+          )
+        </span>
+        <span
+          class="cc-patient-banner__alert"
+        >
+          Latex
+           allergy — 
+          skin rash
+           (
+          mild
+          )
+        </span>
+        <span
+          class="cc-patient-banner__alert"
+        >
+          Fall risk
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`renders PatientBanner with multiple alerts and actions 1`] = `
 <div>
   <div
