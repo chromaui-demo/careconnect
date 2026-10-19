@@ -3,4 +3,4 @@
 "@careconnect/design-system-native": patch
 ---
 
-Secondary and muted text use an accessible gray (#5A6577) that meets WCAG AA contrast on every background.
+Secondary text (#3F4A5C) and muted text (#5A6577) meet WCAG AA contrast on every background, with muted text still lighter than secondary.

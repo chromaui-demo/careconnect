@@ -39,7 +39,7 @@ export const colors = {
   borderStrong: '#B8C4D0',
 
   text: '#1A2332',
-  textSecondary: '#5A6577',
+  textSecondary: '#3F4A5C',
   textMuted: '#5A6577',
   textInverse: '#FFFFFF',
 } as const;
