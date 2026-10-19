@@ -109,9 +109,11 @@ jobs:
           # define from this package.json) and the apps' versions (imported
           # from theirs). TurboSnap ignores version-only package.json changes,
           # so a Version Packages merge would skip the build and leave the main
-          # permalink showing the previous release. Matched against paths from
-          # the repo root.
-          externals: '{packages/design-system,apps/ehr,apps/portal}/package.json'
+          # permalink showing the previous release. The stylesheets reach stories
+          # only through global.css's @import in preview.ts, which the module
+          # graph can't trace, so a token or style change must recapture every
+          # story. Matched against paths from the repo root.
+          externals: '{packages/design-system/package.json,apps/ehr/package.json,apps/portal/package.json,packages/design-system/src/styles/**}'
 
   # Vitest visual tests (packages/design-system/src/**/*.visual.test.tsx): plain
   # Vitest tests in a real browser, where every takeSnapshot() and the end of
