@@ -42,6 +42,8 @@
     "Clinical/VitalSigns": "",
     "Charts/Clinical Dashboard": "",
     "Charts/ECharts Clinical": "",
-    "Foundations/Tokens": ""
+    "Foundations/Tokens": "",
+    "Components/AppointmentSummaryCard": "https://www.figma.com/design/p50bGlCweI9dWFjv9nirhq/CareConnect-Visit-planning-prototype?node-id=4-7",
+    "Patterns/Visit Planning": "https://www.figma.com/design/p50bGlCweI9dWFjv9nirhq/CareConnect-Visit-planning-prototype?node-id=8-8"
   }
 }

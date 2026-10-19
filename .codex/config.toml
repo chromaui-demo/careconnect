@@ -16,3 +16,7 @@ client_id = "cdf3737dff9d485485968e50b63fd8b4"
 # Docs, story preview and test tools; available while `npm run storybook` runs.
 [mcp_servers.careconnect-storybook-local]
 url = "http://localhost:6006/mcp"
+
+# Figma design context and canvas workflows; authenticate per person.
+[mcp_servers.figma]
+url = "https://mcp.figma.com/mcp"
