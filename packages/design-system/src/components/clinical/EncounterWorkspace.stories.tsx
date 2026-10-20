@@ -5,6 +5,7 @@ import { Timeline } from '../Timeline';
 import { VitalsTrendChart } from '../charts/Charts';
 import { Card, CardContent, CardHeader, CardTitle } from '../Card';
 import { Tabs } from '../Tabs';
+import { CareGaps } from '../CareGaps';
 import { EncounterWorkspaceShell } from './EncounterWorkspaceShell';
 import { figmaDesign } from '../../figma/links';
 
@@ -68,6 +69,14 @@ export const InPersonVisit: Story = {
                 />
               </CardContent>
             </Card>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <CareGaps
+                gaps={[
+                  { id: 'crc', title: 'Colorectal cancer screening', detail: 'Last done Mar 2016 · due every 10 years', status: 'overdue' },
+                  { id: 'flu', title: 'Influenza vaccine', detail: 'Last given Oct 2025', status: 'overdue' },
+                ]}
+              />
+            </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <Tabs
                 tabs={[

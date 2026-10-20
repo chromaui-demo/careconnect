@@ -4,10 +4,10 @@
   gap: var(--cc-space-1);
   padding: 2px var(--cc-space-2);
   font-size: var(--cc-text-xs);
-  font-weight: 600;
+  font-weight: 700;
   border-radius: var(--cc-radius-full);
-  letter-spacing: 0.02em;
-  text-transform: capitalize;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .cc-badge__dot {
