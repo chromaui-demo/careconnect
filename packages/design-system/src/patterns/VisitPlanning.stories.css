@@ -1,8 +1,14 @@
-.cc-visit-planning { min-height: 100vh; background: var(--cc-bg); color: var(--cc-text); }
-.cc-visit-planning__brand { display: flex; align-items: center; justify-content: space-between; gap: var(--cc-space-4); padding: var(--cc-space-5) var(--cc-space-6); border-bottom: 1px solid var(--cc-border); background: var(--cc-bg-elevated); }
-.cc-visit-planning__brand span:first-child { color: var(--cc-primary-text); font-weight: 700; font-size: var(--cc-text-xl); }
-.cc-visit-planning__brand span:last-child { font-size: var(--cc-text-sm); }
-.cc-visit-planning__main { max-width: 48rem; margin: 0 auto; padding: var(--cc-space-8) var(--cc-space-6); }
+.cc-visit-planning { display: flex; flex-direction: column; min-height: 100vh; background: var(--cc-bg); color: var(--cc-text); }
+.cc-visit-planning__header { display: flex; align-items: center; flex-wrap: wrap; gap: var(--cc-space-3); padding: var(--cc-space-4) var(--cc-space-6); background: var(--cc-bg-elevated); border-bottom: 1px solid var(--cc-border); }
+.cc-visit-planning__domain { font-size: var(--cc-text-xs); color: var(--cc-text-muted); padding: 2px var(--cc-space-2); background: var(--cc-bg-muted); border-radius: var(--cc-radius-sm); }
+.cc-visit-planning__nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--cc-space-1); flex: 1; }
+.cc-visit-planning__nav-link { padding: var(--cc-space-2) var(--cc-space-3); font-size: var(--cc-text-sm); color: var(--cc-text-secondary); border-radius: var(--cc-radius-md); }
+.cc-visit-planning__nav-link[aria-current='page'] { color: var(--cc-primary); background: var(--cc-primary-subtle); font-weight: 600; }
+.cc-visit-planning__user { margin-left: auto; display: flex; align-items: center; gap: var(--cc-space-2); }
+.cc-visit-planning__name { font-size: var(--cc-text-sm); color: var(--cc-text-secondary); }
+.cc-visit-planning__footer { margin-top: auto; padding: var(--cc-space-4) var(--cc-space-6); text-align: center; border-top: 1px solid var(--cc-border); background: var(--cc-bg-elevated); }
+.cc-visit-planning__footer p { margin: 0; font-size: var(--cc-text-xs); color: var(--cc-text-muted); }
+.cc-visit-planning__main { width: 100%; box-sizing: border-box; max-width: 48rem; margin: 0 auto; padding: var(--cc-space-8) var(--cc-space-6); }
 .cc-visit-planning__main h1 { margin: 0; font-size: var(--cc-text-3xl); }
 .cc-visit-planning__main h1:focus { outline: none; }
 .cc-visit-planning__main h2 { margin: 0 0 var(--cc-space-4); font-size: var(--cc-text-lg); }
@@ -15,6 +21,5 @@
 .cc-visit-planning__preparation p { margin-bottom: 0; }
 @media (max-width: 575px) {
   .cc-visit-planning__main { padding: var(--cc-space-6) var(--cc-space-4); }
-  .cc-visit-planning__brand { padding: var(--cc-space-4); }
   .cc-visit-planning__details { grid-template-columns: 1fr; }
 }

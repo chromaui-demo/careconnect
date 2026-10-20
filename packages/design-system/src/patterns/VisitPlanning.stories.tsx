@@ -1,9 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { expect } from 'storybook/test';
 import { AppointmentSummaryCard, type AppointmentSummary } from '../components/AppointmentSummaryCard';
+import { Avatar } from '../components/Avatar';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
+import { CareConnectLogo } from '../components/Navbar';
 import { figmaDesign } from '../figma/links';
 import { allModes } from '../../.storybook/modes';
 import './VisitPlanning.stories.css';
@@ -21,6 +23,33 @@ const appointment: AppointmentSummary = {
 
 type Screen = 'home' | 'details' | 'empty';
 
+const portalNav = ['Home', 'Visits', 'Medications', 'Results', 'Messages', 'Bills'];
+
+// The patient portal's header and footer (apps/portal/src/layout/PortalLayout.tsx),
+// signed in as the seeded patient, so the prototype reads as the real product.
+function PortalChrome({ children }: { children: ReactNode }) {
+  return (
+    <div className="cc-visit-planning">
+      <header className="cc-visit-planning__header">
+        <CareConnectLogo />
+        <span className="cc-visit-planning__domain">se-tools.net</span>
+        <nav className="cc-visit-planning__nav" aria-label="Patient portal">
+          {portalNav.map((label) => (
+            <span key={label} className="cc-visit-planning__nav-link" aria-current={label === 'Visits' ? 'page' : undefined}>{label}</span>
+          ))}
+        </nav>
+        <div className="cc-visit-planning__user">
+          <Avatar name="Alice Smith" size="sm" />
+          <span className="cc-visit-planning__name">Alice Smith</span>
+          <Button size="sm" variant="ghost">Sign out</Button>
+        </div>
+      </header>
+      {children}
+      <footer className="cc-visit-planning__footer"><p>© 2026 CareConnect · se-tools.net · Demo Environment</p></footer>
+    </div>
+  );
+}
+
 // A story-only composition: navigation is local state, with no API or app routing.
 function VisitPlanningPrototype({ initialScreen = 'home' }: { initialScreen?: Screen }) {
   const [screen, setScreen] = useState<Screen>(initialScreen);
@@ -32,8 +61,7 @@ function VisitPlanningPrototype({ initialScreen = 'home' }: { initialScreen?: Sc
   }, [screen]);
 
   return (
-    <div className="cc-visit-planning">
-      <header className="cc-visit-planning__brand"><span>CareConnect</span><span>Patient portal</span></header>
+    <PortalChrome>
       <main className="cc-visit-planning__main">
         {screen === 'details' ? (
           <>
@@ -66,7 +94,7 @@ function VisitPlanningPrototype({ initialScreen = 'home' }: { initialScreen?: Sc
           </>
         )}
       </main>
-    </div>
+    </PortalChrome>
   );
 }
 

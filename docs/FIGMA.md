@@ -60,9 +60,13 @@ matching details screen; **Back to My care** returns to the summary.
 - [Phone prototype](https://www.figma.com/proto/p50bGlCweI9dWFjv9nirhq/CareConnect-Visit-planning-prototype?node-id=8-71&starting-point-node-id=8%3A71)
 - [Appointment summary component](https://www.figma.com/design/p50bGlCweI9dWFjv9nirhq/CareConnect-Visit-planning-prototype?node-id=4-7)
 
-The file uses editable text, auto layout, reusable button and appointment-card
-components, and a scoped set of CareConnect light-mode color, spacing and
-radius variables. The card has desktop/phone and in-person/virtual variants.
+The file uses editable text, auto layout, Instrument Sans text styles, and
+reusable button, appointment-card, logo, portal nav link, portal header and
+portal footer components, bound to CareConnect light-mode color, spacing and
+radius variables copied from `tokens.css`. The card has desktop/phone and
+in-person/virtual variants. Every screen carries the patient portal's header
+and footer from `apps/portal/src/layout/PortalLayout.tsx` (the CareConnect
+logo, domain, navigation and signed-in patient), as the Storybook pattern does.
 It is a scoped prototype, not the complete design-system library. Its two
 node URLs are registered in `src/figma/links.json`; the library fallback stays
 empty so unrelated stories do not link to this prototype.
