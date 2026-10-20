@@ -45,7 +45,12 @@ export function CareGaps({ gaps, onAddress, onDismiss, className, ...props }: Ca
                   <Button variant="ghost" size="sm" onClick={() => onAddress?.(gap.id)}>
                     Mark addressed
                   </Button>
-                  <button type="button" className="cc-care-gaps__dismiss" onClick={() => onDismiss?.(gap.id)}>
+                  <button
+                    type="button"
+                    className="cc-care-gaps__dismiss"
+                    aria-label={`Dismiss ${gap.title}`}
+                    onClick={() => onDismiss?.(gap.id)}
+                  >
                     <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
                       <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
                     </svg>

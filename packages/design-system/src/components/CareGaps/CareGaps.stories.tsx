@@ -27,7 +27,7 @@ export const OverdueAndDueSoon: Story = {
       { id: 'a1c', title: 'Hemoglobin A1c', detail: 'Due Nov 2026', status: 'due-soon' },
     ],
   },
-  play: async ({ args, canvas, canvasElement, userEvent }) => {
+  play: async ({ args, canvas, userEvent }) => {
     await expect(canvas.getByText('3 open')).toBeVisible();
     await expect(canvas.getAllByText('Overdue')).toHaveLength(2);
     await expect(canvas.getByText('Due soon')).toBeVisible();
@@ -35,8 +35,7 @@ export const OverdueAndDueSoon: Story = {
     await userEvent.click(canvas.getAllByRole('button', { name: 'Mark addressed' })[0]);
     await expect(args.onAddress).toHaveBeenCalledWith('crc');
 
-    const dismiss = canvasElement.querySelectorAll<HTMLButtonElement>('.cc-care-gaps__dismiss')[1];
-    await userEvent.click(dismiss);
+    await userEvent.click(canvas.getByRole('button', { name: 'Dismiss Influenza vaccine' }));
     await expect(args.onDismiss).toHaveBeenCalledWith('flu');
   },
 };
