@@ -9,8 +9,10 @@ export interface CareGap {
   id: string;
   /** What is due, e.g. "Colorectal cancer screening". */
   title: string;
-  /** When it was last done or became due, e.g. "Last done Mar 2021". */
+  /** When it was last done, e.g. "Last done Mar 2016". */
   detail: string;
+  /** When it is or was due, e.g. "Mar 2026". */
+  due: string;
   status: 'overdue' | 'due-soon';
 }
 
@@ -36,7 +38,9 @@ export function CareGaps({ gaps, onAddress, onDismiss, className, ...props }: Ca
               <li key={gap.id} className="cc-care-gaps__item">
                 <div className="cc-care-gaps__text">
                   <span className="cc-care-gaps__title">{gap.title}</span>
-                  <span className="cc-care-gaps__detail">{gap.detail}</span>
+                  <span className="cc-care-gaps__detail">
+                    {gap.detail} · {gap.status === 'overdue' ? 'Was due' : 'Due'} {gap.due}
+                  </span>
                 </div>
                 <Badge variant={gap.status === 'overdue' ? 'warning' : 'info'}>
                   {gap.status === 'overdue' ? 'Overdue' : 'Due soon'}

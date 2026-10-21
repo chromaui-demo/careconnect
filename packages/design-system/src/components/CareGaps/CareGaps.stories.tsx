@@ -22,15 +22,17 @@ type Story = StoryObj<typeof meta>;
 export const OverdueAndDueSoon: Story = {
   args: {
     gaps: [
-      { id: 'crc', title: 'Colorectal cancer screening', detail: 'Last done Mar 2016 · due every 10 years', status: 'overdue' },
-      { id: 'flu', title: 'Influenza vaccine', detail: 'Last given Oct 2025', status: 'overdue' },
-      { id: 'a1c', title: 'Hemoglobin A1c', detail: 'Due Nov 2026', status: 'due-soon' },
+      { id: 'crc', title: 'Colorectal cancer screening', detail: 'Last done Mar 2016', due: 'Mar 2026', status: 'overdue' },
+      { id: 'flu', title: 'Influenza vaccine', detail: 'Last given Oct 2025', due: 'Sep 2026', status: 'overdue' },
+      { id: 'a1c', title: 'Hemoglobin A1c', detail: 'Last done May 2026', due: 'Nov 2026', status: 'due-soon' },
     ],
   },
   play: async ({ args, canvas, userEvent }) => {
     await expect(canvas.getByText('3 open')).toBeVisible();
     await expect(canvas.getAllByText('Overdue')).toHaveLength(2);
     await expect(canvas.getByText('Due soon')).toBeVisible();
+    await expect(canvas.getByText('Last done Mar 2016 · Was due Mar 2026')).toBeVisible();
+    await expect(canvas.getByText('Last done May 2026 · Due Nov 2026')).toBeVisible();
 
     await userEvent.click(canvas.getAllByRole('button', { name: 'Mark addressed' })[0]);
     await expect(args.onAddress).toHaveBeenCalledWith('crc');

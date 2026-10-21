@@ -72,8 +72,8 @@ export const InPersonVisit: Story = {
             <div style={{ gridColumn: '1 / -1' }}>
               <CareGaps
                 gaps={[
-                  { id: 'crc', title: 'Colorectal cancer screening', detail: 'Last done Mar 2016 · due every 10 years', status: 'overdue' },
-                  { id: 'flu', title: 'Influenza vaccine', detail: 'Last given Oct 2025', status: 'overdue' },
+                  { id: 'crc', title: 'Colorectal cancer screening', detail: 'Last done Mar 2016', due: 'Mar 2026', status: 'overdue' },
+                  { id: 'flu', title: 'Influenza vaccine', detail: 'Last given Oct 2025', due: 'Sep 2026', status: 'overdue' },
                 ]}
               />
             </div>
