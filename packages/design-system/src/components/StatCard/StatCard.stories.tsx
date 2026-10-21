@@ -20,3 +20,7 @@ export const OperationsMetrics: Story = {
     </div>
   ),
 };
+
+export const NeedsAttention: Story = {
+  args: { label: 'Balance due', value: '$45.00', delta: 'From your Sep 28 visit', tone: 'attention' },
+};

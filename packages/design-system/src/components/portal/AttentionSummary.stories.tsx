@@ -33,7 +33,7 @@ export const EverythingDue: Story = {
     for (const item of everythingDue) {
       await expect(canvas.getByText(item.label)).toBeVisible();
     }
-    await userEvent.click(canvas.getAllByRole('button')[1]);
+    await userEvent.click(canvas.getByRole('button', { name: 'View results' }));
     await expect(args.items[1].onAction).toHaveBeenCalledOnce();
   },
 };

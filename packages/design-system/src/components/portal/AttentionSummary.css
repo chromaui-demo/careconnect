@@ -1,19 +1,4 @@
 .cc-attention { display: flex; flex-direction: column; gap: var(--cc-space-3); }
 .cc-attention__title { margin: 0; font-size: var(--cc-text-lg); font-weight: 600; color: var(--cc-text); }
-.cc-attention__item { position: relative; }
-.cc-attention__go {
-  position: absolute;
-  top: var(--cc-space-3);
-  right: var(--cc-space-3);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: 0;
-  border-radius: var(--cc-radius-full);
-  background: var(--cc-primary-subtle);
-  color: var(--cc-primary-text);
-  cursor: pointer;
-}
-.cc-attention__go:focus-visible { outline: 2px solid var(--cc-primary); outline-offset: 2px; }
+.cc-attention__item { display: flex; flex-direction: column; align-items: flex-start; gap: var(--cc-space-1); }
+.cc-attention__item > .cc-stat-card { align-self: stretch; }

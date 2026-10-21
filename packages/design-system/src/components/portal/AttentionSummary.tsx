@@ -14,7 +14,7 @@ export interface AttentionItem {
   value: string | number;
   /** One line of context under the value. */
   detail?: string;
-  /** What the button does, e.g. "View results". */
+  /** Text of the button that opens the item's page, e.g. "View results". */
   actionLabel: string;
   onAction: () => void;
 }
@@ -65,12 +65,8 @@ export function AttentionSummary({
         <div className="cc-grid-auto cc-grid-auto--4">
           {items.map((item) => (
             <div key={item.id} className="cc-attention__item">
-              <StatCard label={item.label} value={item.value} delta={item.detail} />
-              <button type="button" className="cc-attention__go" onClick={item.onAction}>
-                <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-                  <path d="M3 8h9M8 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
+              <StatCard label={item.label} value={item.value} delta={item.detail} tone="attention" />
+              <Button variant="ghost" size="sm" onClick={item.onAction}>{item.actionLabel}</Button>
             </div>
           ))}
         </div>
