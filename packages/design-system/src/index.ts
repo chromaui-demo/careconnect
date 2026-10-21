@@ -40,5 +40,6 @@ export * from './components/AppointmentSummaryCard';
 export * from './components/Toast';
 export * from './components/CommandPalette';
 export * from './components/clinical';
+export * from './components/portal';
 export * from './components/PageLoading';
 export * from './components/charts';
