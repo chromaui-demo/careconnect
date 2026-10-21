@@ -27,6 +27,7 @@ export * from './components/Tooltip';
 export * from './components/StatCard';
 export * from './components/PatientBanner';
 export * from './components/VitalSigns';
+export * from './components/CareGaps';
 export * from './components/Timeline';
 export * from './components/Sidebar';
 export * from './components/PageHeader';
