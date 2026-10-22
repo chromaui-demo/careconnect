@@ -30,3 +30,10 @@ export const WithAvatar: Story = {
     last: true,
   },
 };
+export const OneLineSubtitle: Story = {
+  args: {
+    ...WithAvatar.args,
+    subtitle: 'Your A1C came back at 5.6%, which is in the normal range. No changes needed to your plan.',
+    subtitleLines: 1,
+  },
+};

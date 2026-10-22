@@ -12,16 +12,18 @@ export interface ListRowProps {
   onPress?: () => void;
   /** Hide the bottom hairline on the last row of a group. */
   last?: boolean;
+  /** Lines of subtitle before it is cut off. Keep the default when the subtitle carries details people need, such as a visit's location. */
+  subtitleLines?: number;
 }
 
-export function ListRow({ title, subtitle, overline, leading, trailing, onPress, last }: ListRowProps) {
+export function ListRow({ title, subtitle, overline, leading, trailing, onPress, last, subtitleLines = 2 }: ListRowProps) {
   const content = (
     <>
       {leading}
       <View style={styles.body}>
         {overline ? <Text style={styles.overline}>{overline}</Text> : null}
         <Text style={styles.title} numberOfLines={1}>{title}</Text>
-        {subtitle ? <Text style={styles.subtitle} numberOfLines={2}>{subtitle}</Text> : null}
+        {subtitle ? <Text style={styles.subtitle} numberOfLines={subtitleLines}>{subtitle}</Text> : null}
       </View>
       {trailing}
       {onPress ? <Text style={styles.chevron} accessibilityElementsHidden importantForAccessibility="no">›</Text> : null}
