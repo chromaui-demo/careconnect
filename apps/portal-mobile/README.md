@@ -48,13 +48,13 @@ The scripts pass `--clear`, because Metro caches transforms across the app/Story
 
 1. **Detect mobile changes** — `turbo ls --affected` says whether this app or anything it depends on changed. If nothing did, the build jobs are skipped by `if:` and still report a conclusion. Chromatic has no TurboSnap for React Native yet, so this is the cost control. The workflow itself has no `paths:` filter, for the same reason as `chromatic.yml`.
 2. **Build Storybook (Android)** — `npx chromatic react-native-build` runs `expo prebuild` and a `gradlew assembleRelease` build on Linux with Chromatic's Storybook environment. There is no iOS capture: it would need a macOS runner, billed at about ten times the Linux rate. The workflow header explains how to add it back.
-3. **Visual regression review** — uploads `storybook.apk` with `chromaui/action`. Main runs auto-accept and become the baseline; PR changes are reviewed in Chromatic and never auto-accepted.
+3. **Visual regression review** — uploads `storybook.apk` and the story list `manifest.json` (written by `npx chromatic generate-manifest` in the build job) with `chromaui/action`. Main runs auto-accept and become the baseline; PR changes are reviewed in Chromatic and never auto-accepted.
 
 ### One-time setup
 
 1. Create a Chromatic project for this app (separate from the web Storybook and Vitest projects).
 2. Ask Chromatic to enable React Native for it (still early access).
-3. Add its token as the repository secret `CHROMATIC_NATIVE_PROJECT_TOKEN`.
+3. Add its token as the repository secret `CHROMATIC_REACT_NATIVE_PROJECT_TOKEN`.
 
 Until the secret exists, every job skips rather than failing red.
 

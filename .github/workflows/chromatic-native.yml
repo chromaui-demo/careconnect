@@ -11,7 +11,7 @@ name: Chromatic (React Native)
 # and tars `storybook.app`, and unpack it next to the APK in `visual-review`.
 #
 # Kept apart from chromatic.yml because it is a different Chromatic project
-# (CHROMATIC_NATIVE_PROJECT_TOKEN, with React Native enabled by Chromatic).
+# (CHROMATIC_REACT_NATIVE_PROJECT_TOKEN, with React Native enabled by Chromatic).
 #
 # Like chromatic.yml it is deliberately unfiltered by path: a `paths:` filter
 # stops the workflow from starting at all, and a required check that never
@@ -43,7 +43,7 @@ jobs:
     env:
       # secrets.* can't be read in a job-level `if`, so promote it here; the
       # build jobs skip until the token is configured instead of failing red.
-      HAS_TOKEN: ${{ secrets.CHROMATIC_NATIVE_PROJECT_TOKEN != '' }}
+      HAS_TOKEN: ${{ secrets.CHROMATIC_REACT_NATIVE_PROJECT_TOKEN != '' }}
       TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
     outputs:
       run: ${{ steps.check.outputs.run }}
@@ -69,7 +69,7 @@ jobs:
         id: check
         run: |
           if [ "$HAS_TOKEN" != "true" ]; then
-            echo "CHROMATIC_NATIVE_PROJECT_TOKEN is not set; skipping."
+            echo "CHROMATIC_REACT_NATIVE_PROJECT_TOKEN is not set; skipping."
             echo "run=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -116,10 +116,19 @@ jobs:
         working-directory: apps/portal-mobile
         run: npx chromatic react-native-build --platform=android --output-dir=build
 
+      # The story list Chromatic captures from. Generated here because it loads
+      # the Storybook config from .rnstorybook, which needs node_modules; the
+      # upload job has no install.
+      - name: Generate manifest
+        working-directory: apps/portal-mobile
+        run: npx chromatic generate-manifest --output-dir=build
+
       - uses: actions/upload-artifact@v7
         with:
           name: storybook-android
-          path: apps/portal-mobile/build/storybook.apk
+          path: |
+            apps/portal-mobile/build/storybook.apk
+            apps/portal-mobile/build/manifest.json
           retention-days: 3
 
   visual-review:
@@ -142,11 +151,11 @@ jobs:
       # The official action rather than `npx chromatic`, for the same reason as
       # chromatic.yml: it reports the build against the PR head commit, so the
       # "UI Tests" / "UI Review" statuses land on the PR. Uploads the prebuilt
-      # APK; no TurboSnap (unsupported for React Native).
+      # APK and its manifest.json; no TurboSnap (unsupported for React Native).
       - name: Publish to Chromatic
         uses: chromaui/action@v18
         with:
-          projectToken: ${{ secrets.CHROMATIC_NATIVE_PROJECT_TOKEN }}
+          projectToken: ${{ secrets.CHROMATIC_REACT_NATIVE_PROJECT_TOKEN }}
           workingDir: apps/portal-mobile
           storybookBuildDir: storybook-static
           exitZeroOnChanges: true

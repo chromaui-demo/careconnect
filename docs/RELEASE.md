@@ -199,7 +199,7 @@ Chromatic keeps each test framework's builds in a project of its own, so the rep
 | --- | --- | --- |
 | `CHROMATIC_PROJECT_TOKEN` | repository secret | Token of the Storybook project. |
 | `CHROMATIC_VITEST_PROJECT_TOKEN` | repository secret | Token of the Vitest project. When adding it in Chromatic, choose this repository a second time and give the project a distinct name. |
-| `CHROMATIC_NATIVE_PROJECT_TOKEN` | repository secret | Token of the React Native project ([`apps/portal-mobile`](../apps/portal-mobile/README.md#chromatic)); Chromatic must enable React Native on it. |
+| `CHROMATIC_REACT_NATIVE_PROJECT_TOKEN` | repository secret | Token of the React Native project ([`apps/portal-mobile`](../apps/portal-mobile/README.md#chromatic)); Chromatic must enable React Native on it. |
 | `CHROMATIC_PLAYWRIGHT_PROJECT_TOKEN` | repository secret | Token of the Playwright project that the staging deploys upload to ([`apps/playwright-e2e`](../apps/playwright-e2e/README.md)). Choose this repository a third time, with another distinct name. |
 
 A future suite in another framework gets its own project and token on the same pattern, for example `CHROMATIC_CYPRESS_PROJECT_TOKEN`. Mixing frameworks in one project would compare unrelated snapshots against each other's baselines.

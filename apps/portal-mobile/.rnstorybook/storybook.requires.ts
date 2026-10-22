@@ -3,7 +3,7 @@
 import { start, updateView, type View, type Features } from '@storybook/react-native';
 
 
-import "@storybook/addon-ondevice-actions/register";
+
 
 const normalizedStories = [
   {
