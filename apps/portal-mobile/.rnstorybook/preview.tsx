@@ -1,5 +1,6 @@
 import type { Preview } from '@storybook/react-native';
 import { MotionProvider, colors } from '@careconnect/design-system-native';
+import { NavigationBar } from 'expo-navigation-bar';
 import { View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,10 +10,15 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 // one fixed frame — the same pixels on every run — instead of being excluded.
 const capturing = process.env.EXPO_PUBLIC_STORYBOOK_DISABLE_UI === 'true';
 
+// Android's gesture-navigation handle is drawn by the system, not the app, and
+// its anti-aliased edge can differ by a shade between emulator runs. That made
+// Chromatic report a rerun of the same commit as rendering differently, so
+// captures hide the navigation bar. No effect on iOS.
 const preview: Preview = {
   decorators: [
     (Story, { parameters }) => (
       <SafeAreaProvider>
+        {capturing ? <NavigationBar hidden /> : null}
         <MotionProvider animate={capturing ? false : undefined}>
           {parameters.layout === 'fullscreen' ? (
             // Screens shown under a navigation header in the app skip the top
