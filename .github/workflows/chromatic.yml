@@ -166,15 +166,43 @@ jobs:
         if: env.CHROMATIC_PROJECT_TOKEN != '' && steps.docs.outputs.docs_only != 'true' && steps.release.outputs.version_only != 'true'
         run: npm ci
 
-      - name: Install Playwright browser
+      # The visual tests live in the design system, so a change that doesn't
+      # reach it (an app, the API, the mobile app) can't change a snapshot.
+      # Skip the browser install and the run, and publish a skipped build as
+      # for docs-only changes. `turbo ls --affected` includes dependencies'
+      # changes and treats lockfile or root config changes as affecting
+      # everything. A first push to main has no usable `before` SHA; run then.
+      - name: Is the design system affected?
+        id: affected
         if: env.CHROMATIC_PROJECT_TOKEN != '' && steps.docs.outputs.docs_only != 'true' && steps.release.outputs.version_only != 'true'
-        run: npx playwright install --with-deps chromium
+        env:
+          TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+        run: |
+          if [ -z "$TURBO_SCM_BASE" ] || [ "$TURBO_SCM_BASE" = "0000000000000000000000000000000000000000" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          affected=$(npx turbo ls --affected --output=json | node -e '
+            let s = "";
+            process.stdin.on("data", (d) => (s += d)).on("end", () => {
+              const names = JSON.parse(s).packages.items.map((p) => p.name);
+              process.stdout.write(String(names.includes("@careconnect/design-system")));
+            });')
+          echo "Design system affected: $affected"
+          echo "run=$affected" >> "$GITHUB_OUTPUT"
+
+      # Headless only, so the headless shell is enough; skipping the full
+      # Chromium halves the download. --with-deps (apt) is the slow, variable
+      # part, which is why unaffected changes skip this step entirely.
+      - name: Install Playwright browser
+        if: steps.affected.outputs.run == 'true'
+        run: npx playwright install --with-deps --only-shell chromium
 
       # Writes the DOM archives to packages/design-system/.vitest/chromatic.
       # Assertion failures are reported by CI / design-system; upload whatever
       # was captured anyway so reviewers still see the snapshots.
       - name: Run visual tests
-        if: env.CHROMATIC_PROJECT_TOKEN != '' && steps.docs.outputs.docs_only != 'true' && steps.release.outputs.version_only != 'true'
+        if: steps.affected.outputs.run == 'true'
         continue-on-error: true
         run: npm run test:visual
 
@@ -185,7 +213,7 @@ jobs:
           projectToken: ${{ env.CHROMATIC_PROJECT_TOKEN }}
           workingDir: packages/design-system
           vitest: true
-          skip: ${{ steps.docs.outputs.docs_only == 'true' || steps.release.outputs.version_only == 'true' }}
+          skip: ${{ steps.docs.outputs.docs_only == 'true' || steps.release.outputs.version_only == 'true' || steps.affected.outputs.run == 'false' }}
           exitZeroOnChanges: true
           autoAcceptChanges: ${{ github.event_name == 'push' }}
           # TurboSnap from Vite's module graph (`turboSnap: true` on the plugin
