@@ -116,7 +116,7 @@ CareConnect's Chromatic projects, in the `chromaui-demo` account:
 | Storybook | CareConnect | `Project:6ace78da52f27f1047872614` | Design-system stories, every PR | [`chromatic.config.json`](../chromatic.config.json) (root), [`packages/design-system/chromatic.config.json`](../packages/design-system/chromatic.config.json) |
 | Vitest | CareConnect – Vitest | `Project:6ace796ff69f4e53f549f9a7` | `*.visual.test.tsx` flows, every PR | — |
 | Playwright | CareConnect – Playwright | `Project:6ace799e8cf6797ac2227d7a` | End-to-end pages from each staging deploy; production waits for its review | [`apps/playwright-e2e/chromatic.config.json`](../apps/playwright-e2e/chromatic.config.json) |
-| React Native | — | not created yet | `portal-mobile` Storybook | — (`CHROMATIC_NATIVE_PROJECT_TOKEN` is unset, so `chromatic-native.yml` skips its upload) |
+| React Native | CareConnect – React Native | `Project:6ad7dc1db39ff3aae61c4142` | `portal-mobile` Storybook, Android build | — |
 
 The root config names the Storybook project, so the skills use it without
 asking. Working on the end-to-end suite, point the agent at the Playwright

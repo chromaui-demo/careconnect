@@ -54,7 +54,7 @@ The scripts pass `--clear`, because Metro caches transforms across the app/Story
 
 1. Create a Chromatic project for this app (separate from the web Storybook and Vitest projects).
 2. Ask Chromatic to enable React Native for it (still early access).
-3. Add its token as the repository secret `CHROMATIC_NATIVE_PROJECT_TOKEN`.
+3. Add its token as the repository secret `CHROMATIC_REACT_NATIVE_PROJECT_TOKEN`.
 
 Until the secret exists, every job skips rather than failing red.
 
