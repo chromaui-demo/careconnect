@@ -116,10 +116,19 @@ jobs:
         working-directory: apps/portal-mobile
         run: npx chromatic react-native-build --platform=android --output-dir=build
 
+      # The story list Chromatic captures from. Generated here because it loads
+      # the Storybook config from .rnstorybook, which needs node_modules; the
+      # upload job has no install.
+      - name: Generate manifest
+        working-directory: apps/portal-mobile
+        run: npx chromatic generate-manifest --output-dir=build
+
       - uses: actions/upload-artifact@v7
         with:
           name: storybook-android
-          path: apps/portal-mobile/build/storybook.apk
+          path: |
+            apps/portal-mobile/build/storybook.apk
+            apps/portal-mobile/build/manifest.json
           retention-days: 3
 
   visual-review:
@@ -142,7 +151,7 @@ jobs:
       # The official action rather than `npx chromatic`, for the same reason as
       # chromatic.yml: it reports the build against the PR head commit, so the
       # "UI Tests" / "UI Review" statuses land on the PR. Uploads the prebuilt
-      # APK; no TurboSnap (unsupported for React Native).
+      # APK and its manifest.json; no TurboSnap (unsupported for React Native).
       - name: Publish to Chromatic
         uses: chromaui/action@v18
         with:
