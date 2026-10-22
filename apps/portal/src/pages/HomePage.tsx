@@ -35,15 +35,14 @@ function buildItems(data: HomeData, go: (path: string) => void): AttentionItem[]
     });
   }
 
+  // Home shows only how many results need review; test names and values stay on the Results page.
   const abnormal = (data.results ?? []).filter((r) => r.abnormal);
   if (abnormal.length > 0) {
-    const first = abnormal[0];
-    const value = first.resultValue != null ? ` · ${first.resultValue}${first.resultUnit ? ` ${first.resultUnit}` : ''}` : '';
     items.push({
       id: 'results',
       label: 'Results to review',
       value: abnormal.length,
-      detail: abnormal.length === 1 ? `${first.testName}${value}` : `${first.testName} and ${abnormal.length - 1} more`,
+      detail: 'Ready on your Results page',
       actionLabel: 'View results',
       onAction: () => go('/results'),
     });
