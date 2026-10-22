@@ -157,7 +157,7 @@ Chromatic keeps each test framework's builds in a separate project, so the repos
 | Project | Token | Workflow | Source | Runs on | Baseline |
 |---|---|---|---|---|---|
 | **Storybook** | `CHROMATIC_PROJECT_TOKEN` | [`chromatic.yml`](../.github/workflows/chromatic.yml) (`visual-review`) | Web design-system Storybook | Every PR, push to `main`, merge queue | Auto-accepted on `main` |
-| **Vitest** | `CHROMATIC_VITEST_PROJECT_TOKEN` | [`chromatic.yml`](../.github/workflows/chromatic.yml) (`vitest-visual`) | `*.visual.test.tsx` DOM archives | Every PR, push to `main`, merge queue | Auto-accepted on `main` |
+| **Vitest** | `CHROMATIC_VITEST_PROJECT_TOKEN` | [`chromatic.yml`](../.github/workflows/chromatic.yml) (`vitest-visual`) | `*.visual.test.tsx` DOM archives | Every PR, push to `main`, merge queue; tests skipped unless the design system is affected | Auto-accepted on `main` |
 | **React Native** | `CHROMATIC_NATIVE_PROJECT_TOKEN` | [`chromatic-native.yml`](../.github/workflows/chromatic-native.yml) | `portal-mobile` Storybook, Android build | Every PR, push to `main`, merge queue; build skipped unless the mobile app is affected | Auto-accepted on `main` |
 | **Playwright** | `CHROMATIC_PLAYWRIGHT_PROJECT_TOKEN` | [`deploy-environment.yml`](../.github/workflows/deploy-environment.yml) | End-to-end test pages from staging | Every staging deploy | On a `staging-<unit>` branch per release unit, never auto-accepted; production deploys only once its changes are accepted |
 
