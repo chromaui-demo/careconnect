@@ -78,6 +78,30 @@ jobs:
         if: steps.docs.outputs.docs_only != 'true' && steps.release.outputs.version_only != 'true'
         run: npm ci
 
+      # A pull request that doesn't reach the design system or the apps whose
+      # versions its stories render (the mobile app, the API) can't change a
+      # story. TurboSnap would bypass every snapshot anyway, but it then carries
+      # over the last capturing ancestor's status, so the PR's UI Tests check
+      # links to an unrelated, often days-old build. Publish a skipped build
+      # instead, as the Vitest job does: the check reads "Skipped build." and
+      # still passes. Pull requests only; main and merge-queue runs keep the
+      # full TurboSnap trace, which `externals` below depends on.
+      - name: Is the Storybook affected?
+        id: affected
+        if: github.event_name == 'pull_request' && steps.docs.outputs.docs_only != 'true' && steps.release.outputs.version_only != 'true'
+        env:
+          TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          affected=$(npx turbo ls --affected --output=json | node -e '
+            let s = "";
+            process.stdin.on("data", (d) => (s += d)).on("end", () => {
+              const names = JSON.parse(s).packages.items.map((p) => p.name);
+              const watched = ["@careconnect/design-system", "@careconnect/ehr", "@careconnect/portal"];
+              process.stdout.write(String(names.some((n) => watched.includes(n))));
+            });')
+          echo "Storybook affected: $affected"
+          echo "run=$affected" >> "$GITHUB_OUTPUT"
+
       # Skip rather than fail red until CHROMATIC_PROJECT_TOKEN is configured
       # (see packages/design-system/CONTRIBUTING.md). secrets.* can't be read in
       # a job-level `if`, so the token is promoted to env above and tested here.
@@ -94,7 +118,7 @@ jobs:
         with:
           projectToken: ${{ env.CHROMATIC_PROJECT_TOKEN }}
           workingDir: packages/design-system
-          skip: ${{ steps.docs.outputs.docs_only == 'true' || steps.release.outputs.version_only == 'true' }}
+          skip: ${{ steps.docs.outputs.docs_only == 'true' || steps.release.outputs.version_only == 'true' || steps.affected.outputs.run == 'false' }}
           exitZeroOnChanges: true
           autoAcceptChanges: ${{ github.event_name == 'push' }}
           # TurboSnap: snapshot only the stories the commit actually affects,
