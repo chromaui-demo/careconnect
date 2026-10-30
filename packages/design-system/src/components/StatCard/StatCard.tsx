@@ -12,6 +12,8 @@ export interface StatCardProps extends HTMLAttributes<HTMLDivElement> {
   deltaTrend?: 'up' | 'down' | 'neutral';
   icon?: ReactNode;
   sparkline?: boolean;
+  /** `attention` marks a number the person needs to act on, such as a balance due. Leave routine metrics on `default`. */
+  tone?: 'default' | 'attention';
 }
 
 export function StatCard({
@@ -21,11 +23,12 @@ export function StatCard({
   deltaTrend = 'neutral',
   icon,
   sparkline,
+  tone = 'default',
   className,
   ...props
 }: StatCardProps) {
   return (
-    <div className={clsx('cc-stat-card', className)} {...props}>
+    <div className={clsx('cc-stat-card', tone === 'attention' && 'cc-stat-card--attention', className)} {...props}>
       <div className="cc-stat-card__header">
         <span className="cc-stat-card__label">{label}</span>
         {icon && <span className="cc-stat-card__icon">{icon}</span>}
