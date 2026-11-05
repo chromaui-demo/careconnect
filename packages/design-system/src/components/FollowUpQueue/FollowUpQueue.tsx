@@ -44,6 +44,7 @@ export function FollowUpQueue({ items, today, currentUserId, initialView = 'team
   const overdue = (item: FollowUpItem) => !!item.dueDate && item.dueDate.slice(0, 10) < today;
   const rows = useMemo(() => open.filter(item => view === 'mine' ? item.assigneeId === currentUserId : view === 'overdue' ? overdue(item) : true)
     .sort((a, b) => Number(overdue(b)) - Number(overdue(a)) || Number(b.priority === 'high') - Number(a.priority === 'high') || (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999')), [items, view, currentUserId, today]);
+  const summaryItems = view === 'mine' ? rows : open;
 
   const complete = async (item: FollowUpItem) => {
     setPending(ids => [...ids, item.id]);
@@ -61,7 +62,7 @@ export function FollowUpQueue({ items, today, currentUserId, initialView = 'team
   ];
 
   return <section className="cc-follow-up-queue" aria-label="Patient follow-up queue">
-    <header className="cc-follow-up-queue__header"><div><h2>{view === 'mine' ? 'My follow-ups' : 'Team handoff'}</h2><p>See what is due and who owns the next step.</p></div><p className="cc-follow-up-queue__summary">{open.filter(overdue).length} overdue · {open.filter(item => !item.assigneeId).length} unassigned</p></header>
+    <header className="cc-follow-up-queue__header"><div><h2>{view === 'mine' ? 'My follow-ups' : 'Team handoff'}</h2><p>See what is due and who owns the next step.</p></div><p className="cc-follow-up-queue__summary">{summaryItems.filter(overdue).length} overdue · {summaryItems.filter(item => !item.assigneeId).length} unassigned</p></header>
     <RadioGroup name={name} label="Show follow-ups" layout="horizontal" value={view} onChange={event => setView(event.target.value)} options={[{ value: 'team', label: 'Team' }, { value: 'mine', label: 'Mine' }, { value: 'overdue', label: 'Overdue' }]} />
     {loadError && <Alert variant="error" title="The queue could not refresh" action={onRetry ? <Button size="sm" variant="secondary" onClick={onRetry}>Retry loading</Button> : undefined}>{loadError} Previously loaded work stays visible.</Alert>}
     {failure && <Alert variant="error" title="Follow-up was not completed" action={<Button size="sm" variant="secondary" onClick={() => { const item = items.find(item => item.id === failure.id); if (item) void complete(item); }}>Retry completion</Button>}>{failure.title} is still open. Check the connection and retry.</Alert>}

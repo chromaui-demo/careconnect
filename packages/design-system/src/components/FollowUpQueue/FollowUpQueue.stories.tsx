@@ -44,6 +44,7 @@ export const ClinicianOwnWork: Story = {
     await expect(canvas.getByRole('heading', { name: 'My follow-ups' })).toBeVisible();
     await expect(canvas.getByText('Alice Smith')).toBeVisible();
     await expect(canvas.queryByText('Bob Johnson')).not.toBeInTheDocument();
+    await expect(canvas.getByText('1 overdue · 0 unassigned')).toBeVisible();
   },
 };
 export const OverdueFilter: Story = {
@@ -107,6 +108,22 @@ export const RetryAfterConnectionRecovers: Story = {
     await expect(canvas.getByText('Follow-up was not completed')).toBeVisible();
     await userEvent.click(canvas.getByRole('button', { name: 'Retry completion' }));
     await expect(canvas.queryByText('Alice Smith')).not.toBeInTheDocument();
+    await expect(canvas.getByText('Bob Johnson')).toBeVisible();
+  },
+};
+
+export const CountsFollowStaffView: Story = {
+  render: args => <QueueDemo {...args} />,
+  play: async ({ canvas, userEvent }) => {
+    await expect(canvas.getByText('2 overdue · 1 unassigned')).toBeVisible();
+    await userEvent.click(canvas.getByRole('radio', { name: 'Mine' }));
+    await expect(canvas.getByText('1 overdue · 0 unassigned')).toBeVisible();
+    const row = within(canvas.getByText('Alice Smith').closest('tr')!);
+    await userEvent.click(row.getByRole('button', { name: 'Complete follow-up' }));
+    await expect(canvas.getByText('0 overdue · 0 unassigned')).toBeVisible();
+    await expect(canvas.getByText('No open follow-ups assigned to you.')).toBeVisible();
+    await userEvent.click(canvas.getByRole('radio', { name: 'Team' }));
+    await expect(canvas.getByText('1 overdue · 1 unassigned')).toBeVisible();
     await expect(canvas.getByText('Bob Johnson')).toBeVisible();
   },
 };
