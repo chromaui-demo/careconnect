@@ -78,7 +78,7 @@ export function DataGrid<T>({
           <span className="cc-data-grid__count">{filtered.length} rows</span>
         </div>
       )}
-      <div className="cc-data-grid__scroll">
+      <div className="cc-data-grid__scroll" tabIndex={0} role="region" aria-label="Table results">
         <table className="cc-data-grid__table">
           <thead>
             <tr>

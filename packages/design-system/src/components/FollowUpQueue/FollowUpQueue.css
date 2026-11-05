@@ -12,3 +12,6 @@
 .cc-follow-up-queue .cc-data-grid__empty { color: var(--cc-text); }
 
 .cc-follow-up-queue .cc-alert__body { color: var(--cc-text); }
+.cc-follow-up-queue .cc-data-grid__toolbar .cc-input__container {
+  max-width: calc(var(--cc-space-12) * 4);
+}
