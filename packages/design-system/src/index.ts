@@ -42,3 +42,4 @@ export * from './components/CommandPalette';
 export * from './components/clinical';
 export * from './components/PageLoading';
 export * from './components/charts';
+export * from './components/FollowUpQueue';

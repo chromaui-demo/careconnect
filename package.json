@@ -37,9 +37,10 @@
   "devDependencies": {
     "@changesets/cli": "^3.0.1",
     "turbo": "^2.10.11",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "storybook": "^10.6.6"
   },
   "overrides": {
-    "storybook": "^10.6.2"
+    "storybook": "$storybook"
   }
 }

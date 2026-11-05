@@ -406,6 +406,8 @@ export interface BookAppointmentPayload {
 
 export interface Task {
   id: string;
+  assigneeId?: string;
+  patientId?: string;
   title: string;
   description?: string;
   status: string;
