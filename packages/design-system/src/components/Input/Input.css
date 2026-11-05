@@ -81,3 +81,7 @@
   font-size: var(--cc-text-xs);
   color: var(--cc-text-muted);
 }
+
+.cc-input__container {
+  max-width: calc(var(--cc-space-12) * 4);
+}

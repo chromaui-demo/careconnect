@@ -1,0 +1,14 @@
+.cc-follow-up-queue { display: grid; gap: var(--cc-space-4); }
+.cc-follow-up-queue__header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--cc-space-4); }
+.cc-follow-up-queue__header h2 { margin: 0; font-size: var(--cc-text-xl); }
+.cc-follow-up-queue__header p { margin: var(--cc-space-1) 0 0; }
+.cc-follow-up-queue__summary { font-weight: 600; }
+.cc-follow-up-queue__patient, .cc-follow-up-queue__due { display: grid; gap: var(--cc-space-1); }
+.cc-follow-up-queue__patient { min-width: calc(var(--cc-space-12) * 4); }
+.cc-follow-up-queue__due { justify-items: start; }
+.cc-follow-up-queue__actions { display: flex; flex-wrap: wrap; gap: var(--cc-space-2); }
+.cc-follow-up-queue .cc-data-grid__header,
+.cc-follow-up-queue .cc-data-grid__count,
+.cc-follow-up-queue .cc-data-grid__empty { color: var(--cc-text); }
+
+.cc-follow-up-queue .cc-alert__body { color: var(--cc-text); }

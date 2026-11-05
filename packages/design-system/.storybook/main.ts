@@ -1,4 +1,10 @@
 import type { StorybookConfig } from '@storybook/react-vite';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// Resolve from this workspace when npm nests addons beside its package.json.
+const getAbsolutePath = (packageName: string) =>
+  dirname(fileURLToPath(import.meta.resolve(`${packageName}/package.json`)));
 
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.@(ts|tsx)'],
@@ -12,9 +18,9 @@ const config: StorybookConfig = {
     '@storybook/addon-mcp',
     'storybook-addon-pseudo-states',
     '@chromatic-com/storybook',
-  ],
+  ].map(getAbsolutePath),
   framework: {
-    name: '@storybook/react-vite',
+    name: getAbsolutePath('@storybook/react-vite'),
     options: {},
   },
   staticDirs: ['../public'],
