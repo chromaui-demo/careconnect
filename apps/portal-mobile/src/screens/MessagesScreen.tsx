@@ -30,6 +30,7 @@ export function MessagesScreen({ threads, loading, error, refreshing, onRefresh,
               overline={`${t.providerName} · ${formatDate(t.updatedAt)}`}
               title={t.subject}
               subtitle={t.lastPreview}
+              subtitleLines={1}
               trailing={t.unreadCount > 0 ? <Badge variant="info">{`${t.unreadCount} new`}</Badge> : undefined}
               onPress={() => onOpenThread(t.id)}
               last={i === threads.length - 1}
