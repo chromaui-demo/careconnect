@@ -19,7 +19,8 @@ function mapAppointment(row: Record<string, unknown>) {
       dateOfBirth: patient.date_of_birth, gender: patient.gender, phone: patient.phone, email: patient.email,
       address: patient.address_json ? JSON.parse(String(patient.address_json)) : undefined,
     } : undefined,
-    status: row.status, serviceMode: row.service_mode, reasonForVisit: row.reason_for_visit,
+    // Statuses go out in snake_case, like the rest of the API's enum values.
+    status: String(row.status).replace(/-/g, '_'), serviceMode: row.service_mode, reasonForVisit: row.reason_for_visit,
     scheduledTime: row.scheduled_time, checkInTime: row.check_in_time,
     location: location?.name ?? 'Unknown', locationId: row.location_id,
     provider: provider ? `Dr. ${provider.first_name} ${provider.last_name}` : 'Unassigned',
