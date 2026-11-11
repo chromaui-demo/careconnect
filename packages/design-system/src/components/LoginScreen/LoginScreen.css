@@ -197,6 +197,12 @@
   .cc-login-screen__compliance {
     margin-top: var(--cc-space-6);
   }
+
+  /* On phones the keyboard covers the bottom of the form, so the error comes
+     first, above the fields, where it stays visible. */
+  .cc-login-screen__error {
+    order: -1;
+  }
 }
 
 @media (max-width: 480px) {
