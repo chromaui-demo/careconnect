@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect } from 'storybook/test';
 import { Sidebar } from '../Sidebar';
 import { VitalSigns } from '../VitalSigns';
 import { Timeline } from '../Timeline';
@@ -87,4 +88,10 @@ export const InPersonVisit: Story = {
       </main>
     </div>
   ),
+  // Interaction test: the clinician sees every vital the nurse recorded.
+  play: async ({ canvas }) => {
+    for (const value of ['128/82', '72', '98.4', '98']) {
+      await expect(canvas.getByText(value)).toBeVisible();
+    }
+  },
 };
