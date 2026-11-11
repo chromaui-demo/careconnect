@@ -8,7 +8,8 @@ type Story = StoryObj<typeof VitalSigns>;
 
 export const TriagePanel: Story = {
   args: {
-    recordedAt: '2:14 PM',
+    // Show when the panel renders, like the live triage screen.
+    recordedAt: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
     readings: [
       { label: 'BP', value: '128/82', unit: 'mmHg' },
       { label: 'HR', value: '88', unit: 'bpm', status: 'warning' },

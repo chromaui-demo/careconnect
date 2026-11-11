@@ -10,7 +10,9 @@ export interface VitalReading {
 }
 
 export interface VitalSignsProps extends HTMLAttributes<HTMLDivElement> {
+  /** One tile per reading, in the order given. */
   readings: VitalReading[];
+  /** When the readings were taken, shown as "Recorded …" in the header. */
   recordedAt?: string;
 }
 
