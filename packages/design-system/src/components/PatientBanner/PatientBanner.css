@@ -14,4 +14,8 @@
   font-size: var(--cc-text-xs); font-weight: 600; color: var(--cc-error-text);
   background: var(--cc-error-subtle); padding: 2px var(--cc-space-2); border-radius: var(--cc-radius-full);
 }
+.cc-patient-banner__allergy {
+  font-size: var(--cc-text-xs); font-weight: 500; color: var(--cc-text);
+  background: var(--cc-bg-muted); padding: 2px var(--cc-space-2); border-radius: var(--cc-radius-full);
+}
 .cc-patient-banner__actions { display: flex; gap: var(--cc-space-2); flex-shrink: 0; }

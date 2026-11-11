@@ -4,6 +4,17 @@ import { Avatar } from '../Avatar';
 import { Badge } from '../Badge';
 import './PatientBanner.css';
 
+export type AllergySeverity = 'severe' | 'moderate' | 'mild';
+
+export interface PatientAllergy {
+  substance: string;
+  reaction: string;
+  severity: AllergySeverity;
+}
+
+const severityOrder: Record<AllergySeverity, number> = { severe: 0, moderate: 1, mild: 2 };
+const severityLabel: Record<AllergySeverity, string> = { severe: 'Severe', moderate: 'Moderate', mild: 'Mild' };
+
 export interface PatientBannerProps extends HTMLAttributes<HTMLDivElement> {
   name: string;
   mrn: string;
@@ -12,6 +23,7 @@ export interface PatientBannerProps extends HTMLAttributes<HTMLDivElement> {
   sex: string;
   status?: 'in-office' | 'prebooked' | 'completed' | 'cancelled';
   alerts?: string[];
+  allergies?: PatientAllergy[];
   actions?: ReactNode;
 }
 
@@ -23,6 +35,7 @@ export function PatientBanner({
   sex,
   status = 'in-office',
   alerts = [],
+  allergies = [],
   actions,
   className,
   ...props
@@ -38,8 +51,18 @@ export function PatientBanner({
         <p className="cc-patient-banner__meta">
           MRN {mrn} · DOB {dob} ({age}y) · {sex}
         </p>
-        {alerts.length > 0 && (
+        {(allergies.length > 0 || alerts.length > 0) && (
           <div className="cc-patient-banner__alerts">
+            {[...allergies]
+              .sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity])
+              .map((a) => (
+                <span
+                  key={a.substance}
+                  className={a.severity === 'severe' ? 'cc-patient-banner__alert' : 'cc-patient-banner__allergy'}
+                >
+                  <strong>{severityLabel[a.severity]}</strong> · {a.substance} — {a.reaction}
+                </span>
+              ))}
             {alerts.map((a) => (
               <span key={a} className="cc-patient-banner__alert">{a}</span>
             ))}
